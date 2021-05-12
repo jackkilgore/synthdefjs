@@ -1,0 +1,29 @@
+{
+  "name": "synthdefjs",
+  "version": "1.0.0",
+  "description": "SuperCollider SynthDefs in native JS.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackkilgore/synthdefjs.git"
+  },
+  "keywords": [
+    "SuperCollider",
+    "graphs",
+    "synths",
+    "audio"
+  ],
+  "author": "Jack Kilgore",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jackkilgore/synthdefjs/issues"
+  },
+  "homepage": "https://github.com/jackkilgore/synthdefjs#readme",
+  "dependencies": {
+    "acorn": "^8.2.4",
+    "acorn-walk": "^8.1.0"
+  }
+}
