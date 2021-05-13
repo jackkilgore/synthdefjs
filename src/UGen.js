@@ -20,6 +20,7 @@ var UGen = {
     },
     checkInputs: function() {
         console.log(this.inputs)
+        console.log("Generic UGen checkInputs")
         for(let i = 0; i < this.inputs.length; i++) {
             // if(!this.inputs[i].isValidUGenInput) {
             //     return false
@@ -46,6 +47,25 @@ SinOsc.kr = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
 
 
 var Out = Object.create(UGen)
+
+// Uhh, this is starting to bore meeee.
+// Should I switch to a new project? I'm not sure if I have time to do that well.
+Out.checkInputs = function() {
+    console.log("Outs Check Inputs...")
+    if(this.rate === "audio") {
+        for(let i = 0; i < this.inputs[1]; i++) {
+            if(this.inputs[i].rate != "audio") {
+                console.log("Inputs to Out not at the audio rate.")
+                return false
+            }
+        }
+    }
+    if(this.inputs.length < 2) {
+        console.log("Out does not have enough inputs.")
+        return false
+    }
+    return true
+}
 
 Out.ar = function (bus,signals) {
     out = Object.create(Out)

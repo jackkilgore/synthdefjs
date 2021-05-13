@@ -19,18 +19,8 @@ let SinOsc = {
 let Done = { freeSelf: 0 }
 
 {
-	
-	// Parser doesn't like defaults
-    SynthDef("simple", (out, freq = 800, sustain = 1, amp = 0.9) => {
-      Out.ar(out,
-        BinOp('*', SinOsc.ar(freq, 0, 0.2), Line.kr(amp, 0, sustain, {doneAction: Done.freeSelf}))
-      )
-    }).add();
-	
-	
-
 	// Works
-	SynthDef("test", (out, around, the, slough) => {
+	SynthDef("test1", (out, around, the, slough) => {
 		var sig = SinOsc.ar(440)
 		sig += 1
 		Out.ar(out,sig)
@@ -42,12 +32,12 @@ let Done = { freeSelf: 0 }
 		sig += 1
 		Out.ar(out,sig)
 	}
-	SynthDef("test", test).add();
+	SynthDef("test2", test).add();
 
 	// Doesn't work for some reason in acorn
-	SynthDef("test", function (out, around, the, bogs) {
+	SynthDef("test3", function (out = 1, around = 21, the, bogs) {
 		var sig = SinOsc.ar(440)
 		Out.ar(out,sig)
-	});
+	}).add();
 
 }
