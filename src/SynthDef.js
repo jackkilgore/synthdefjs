@@ -65,7 +65,11 @@ var SynthDefTemplate = {
         this.children = []
         UGen.synthDefContext = this
         console.log("SynthDef setting UGen context")
-        //func_graph.apply(this,this.args)
+        let args_flat = []
+        for(let i = 0; i < this.args.length; i++) {
+            args_flat.push(this.args[i].value)
+        }
+        func_graph.apply(this,args_flat)
     },
 
     checkNodesInputs: function () {
