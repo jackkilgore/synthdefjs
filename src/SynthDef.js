@@ -3,6 +3,9 @@ const acorn = require("acorn")
 const walk = require("acorn-walk")
 
 function captureArguments(func) {
+    if (typeof func !== 'function') {
+        throw 'captureArguments input is not a function!'
+    }
     var ast = acorn.parse( "(" + func.toString() + ")", {ecmaVersion: 2020} )
     var params = []
 	walk.full( ast,
@@ -28,7 +31,6 @@ function captureArguments(func) {
 		}
 	)
     return params
-
 }
 
 var SynthDefTemplate = {
@@ -40,7 +42,6 @@ var SynthDefTemplate = {
         for(let i = 0; i < this.args.length; i++ ) {
             console.log(this.args[i])
         }
-
     
         this.children = [];
         this.constants = {};
