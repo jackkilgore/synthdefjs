@@ -1,6 +1,10 @@
+const {isArray} = require('./Utilities')
+
+
 var UGen = {
     synthDefContext: undefined, // Will be defined when a SynthDef is initialized.
     isValidUGenInput: true, // We need to somehow define this value for all objects
+    name: "UGen",
     addToGraph: function(rate, ...args) {
         this.synthDef = undefined
         this.synthIndex = undefined
@@ -19,12 +23,16 @@ var UGen = {
         }
     },
     checkInputs: function() {
-        console.log(this.inputs)
+        return this.checkValInputs()
+    },
+    checkValInputs: function() {
         console.log("Generic UGen checkInputs")
         for(let i = 0; i < this.inputs.length; i++) {
-            // if(!this.inputs[i].isValidUGenInput) {
-            //     return false
-            // }
+            if(!this.inputs[i].isValidUGenInput && !Number.isFinite(this.inputs[i])
+                && !isArray(this.inputs[i])) 
+            {
+                return false
+            }
         }
         return true
     }
@@ -32,17 +40,19 @@ var UGen = {
 
 var SinOsc = Object.create(UGen)
 
+
 SinOsc.ar = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
     obj = Object.create(SinOsc)
-    // Should we check inputs here?
+    obj.name = "%SinOsc.ar"
     obj.addToGraph("audio",freq, phase, mul, add)
     return obj
 }
 
 SinOsc.kr = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
-    out = Object.create(SinOsc)
-    out.addToGraph("control",freq, phase, mul, add)
-    return out
+    obj = Object.create(SinOsc)
+    obj.name = "%SinOsc.kr"
+    obj.addToGraph("control",freq, phase, mul, add)
+    return obj
 }
 
 
@@ -64,23 +74,32 @@ Out.checkInputs = function() {
         console.log("Out does not have enough inputs.")
         return false
     }
-    return true
+
+    return this.checkValInputs()
 }
 
 Out.ar = function (bus,signals) {
-    out = Object.create(Out)
-    out.addToGraph("audio", bus, signals)
-    return out
+    obj = Object.create(Out)
+    obj.name = "%Out.ar"
+    obj.addToGraph("audio", bus, signals)
+    return obj
 }
 
 Out.kr = function (bus,signals) {
-    out = Object.create(Out)
+    obj = Object.create(Out)
+    obj.name = "%Out.kr"
     out.addToGraph("control", bus, signals)
-    return out
+    return obj
 }
+
+
+var Control = Object.create(UGen)
+
+
 
 module.exports = {
 	UGen,
     SinOsc,
     Out,
+    Control,
 }

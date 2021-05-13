@@ -1,47 +1,11 @@
 const {UGen} = require('./UGen')
-const acorn = require("acorn")
-const walk = require("acorn-walk")
-
-function captureArguments(func) {
-    if (typeof func !== 'function') {
-        throw 'captureArguments input is not a function!'
-    }
-    var ast = acorn.parse( "(" + func.toString() + ")", {ecmaVersion: 2020} )
-    var params = []
-	walk.full( ast,
-		(node) => {
-			if (node.type === 'ArrowFunctionExpression' 
-				|| node.type === 'FunctionDeclaration' 
-				|| node.type === 'FunctionExpression') 
-			{
-                console.log(`There's an arrow function expression declaration node at ${JSON.stringify(node.loc)}`);
-                params = node.params.map((param) => {
-					if(param.type === 'Identifier') {
-						return {"name":param.name, "default": 0}
-					}
-					else if (param.type === 'AssignmentPattern') {
-						if(param.right.type === 'Literal') {
-							return {"name":param.left.name, "default":param.right.value}
-						} else {
-							throw 'Default is not a literal!';
-						}
-					}
-                })
-            }
-		}
-	)
-    return params
-}
+const {captureArguments} = require('./Utilities')
 
 var SynthDefTemplate = {
     init: function(name, func_graph) {
         this.name = name;
         var funcGraph = func_graph;
         this.args = captureArguments(funcGraph)
-
-        for(let i = 0; i < this.args.length; i++ ) {
-            console.log(this.args[i])
-        }
     
         this.children = [];
         this.constants = {};
@@ -67,7 +31,8 @@ var SynthDefTemplate = {
         console.log("SynthDef setting UGen context")
         let args_flat = []
         for(let i = 0; i < this.args.length; i++) {
-            args_flat.push(this.args[i].value)
+            args_flat.push(this.args[i].default)
+            // console.log(this.args[i].default)
         }
         func_graph.apply(this,args_flat)
     },
@@ -81,6 +46,10 @@ var SynthDefTemplate = {
        }
       
     },
+
+    convertArgsToControls: function() {
+
+    }
 
 }
 
