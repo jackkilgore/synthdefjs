@@ -10,8 +10,7 @@ var SynthDefTemplate = {
 
     
         this.nodes = []
-        this.constants = {}
-        this.constantSet = new Set()
+        this.constants = []
         this.controls = []
         
         this.build(funcGraph)
@@ -19,6 +18,7 @@ var SynthDefTemplate = {
         if(!this.checkNodesInputs()) {
             return
         }
+        this.collectConstants()
 
     },
 
@@ -48,7 +48,21 @@ var SynthDefTemplate = {
                return false
            }
        }
+       return true
       
+    },
+
+    collectConstants: function () {
+        let constantSet = new Set()
+        for(let i = 0; i < this.nodes.length; i++) {
+            for(let j = 0; j < this.nodes[i].inputs.length; j++) {
+                // If input is an array, go one nest deeper...
+                if( Number.isFinite(this.nodes[i].inputs[j])) {
+                    constantSet.add(this.nodes[i].inputs[j])
+                } 
+            }
+        }
+        this.constants = Array.from(constantSet)
     },
 
     addControl: function (control) {
