@@ -18,3 +18,10 @@ let def3 = SynthDef("def3", () => {
     let sig = SinOsc.kr("freq".kr(220), "amp".kr(0.5))
     let a = Out.ar("out".kr(0), sig)
 })
+
+// Make sure something like this works:
+let def4 = SynthDef("def4", () => {
+    var freq = "freq".kr(2.0)
+    let sig = SinOsc.kr(freq, "amp".kr(0.5), freq)
+    let a = Out.ar("out".kr(0), sig)
+})
