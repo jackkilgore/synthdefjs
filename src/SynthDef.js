@@ -1,4 +1,4 @@
-const {UGen} = require('./UGen')
+const {UGen, Control} = require('./UGen')
 const {captureArguments} = require('./Utilities')
 
 var SynthDefTemplate = {
@@ -6,13 +6,16 @@ var SynthDefTemplate = {
         this.name = name;
         var funcGraph = func_graph;
         this.args = captureArguments(funcGraph)
+        this.args_to_ctrl = [] 
+
     
-        this.children = [];
-        this.constants = {};
-        this.constantSet = new Set();
+        this.nodes = []
+        this.constants = {}
+        this.constantSet = new Set()
+        this.controls = []
         
         this.build(funcGraph)
-        console.log("Number of nodes:", this.children.length)
+        console.log("Number of nodes:", this.nodes.length)
         if(!this.checkNodesInputs()) {
             return
         }
@@ -21,12 +24,12 @@ var SynthDefTemplate = {
 
     addNode: function(node) {
         console.log("Adding node to graph...")
-        node.synthIndex = this.children.length;
-        this.children.push(node)
+        node.synthIndex = this.nodes.length;
+        this.nodes.push(node)
     },
 
     build: function (func_graph) {
-        this.children = []
+        this.nodes = []
         UGen.synthDefContext = this
         console.log("SynthDef setting UGen context")
         let args_flat = []
@@ -34,12 +37,13 @@ var SynthDefTemplate = {
             args_flat.push(this.args[i].default)
             // console.log(this.args[i].default)
         }
+        //let args_to_ctrl = this.convertArgsToControls()
         func_graph.apply(this,args_flat)
     },
 
     checkNodesInputs: function () {
-       for(let i = 0; i < this.children.length; i++) {
-           if(!this.children[i].checkInputs()) {
+       for(let i = 0; i < this.nodes.length; i++) {
+           if(!this.nodes[i].checkInputs()) {
                console.log("ERROR: Invalid Inputs to some UGen.")
                return false
            }
@@ -47,9 +51,29 @@ var SynthDefTemplate = {
       
     },
 
-    convertArgsToControls: function() {
+    addControl: function (control) {
+        if(!control.hasOwnProperty('name') || !control.hasOwnProperty('values')) {
+            throw 'ERROR: Control object to be added does not have a name or a values property!'
+        }
+        if(control.rate !== "control" && control.rate !== "audio" &&
+            control.rate !== "scalar" && control.rate !== "trigger") {
+            throw 'ERROR: Invalid control rate!'
+        }
 
-    }
+        control.controlIndex = this.controls.length
+        this.controls.push(control)
+
+    },
+
+    // Deprecated for now
+    convertArgsToControls: function() {
+        let arg_names = []
+        for(let i = 0; i < this.args.length; i++) {
+            arg_names.push(this.args[i].name)
+            //args_to_ctrl.push(Control.kr(this.args.name))
+        }
+        return args_to_ctrl
+    },
 
 }
 

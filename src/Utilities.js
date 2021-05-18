@@ -15,7 +15,7 @@ function captureArguments(func) {
 			{
                 params = node.params.map((param) => {
 					if(param.type === 'Identifier') {
-						return {"name":param.name, "default": 0}
+						return {"name":param.name, "default": undefined}
 					}
 					else if (param.type === 'AssignmentPattern') {
 						if(param.right.type === 'Literal') {

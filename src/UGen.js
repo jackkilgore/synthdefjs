@@ -26,7 +26,7 @@ var UGen = {
         return this.checkValInputs()
     },
     checkValInputs: function() {
-        console.log("Generic UGen checkInputs")
+        console.log(`Generic UGen checkInputs of ${this.name}`)
         for(let i = 0; i < this.inputs.length; i++) {
             if(!this.inputs[i].isValidUGenInput && !Number.isFinite(this.inputs[i])
                 && !isArray(this.inputs[i])) 
@@ -43,14 +43,14 @@ var SinOsc = Object.create(UGen)
 
 SinOsc.ar = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
     obj = Object.create(SinOsc)
-    obj.name = "%SinOsc.ar"
+    obj.name = "SinOsc"
     obj.addToGraph("audio",freq, phase, mul, add)
     return obj
 }
 
 SinOsc.kr = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
     obj = Object.create(SinOsc)
-    obj.name = "%SinOsc.kr"
+    obj.name = "SinOsc"
     obj.addToGraph("control",freq, phase, mul, add)
     return obj
 }
@@ -58,8 +58,6 @@ SinOsc.kr = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
 
 var Out = Object.create(UGen)
 
-// Uhh, this is starting to bore meeee.
-// Should I switch to a new project? I'm not sure if I have time to do that well.
 Out.checkInputs = function() {
     console.log("Outs Check Inputs...")
     if(this.rate === "audio") {
@@ -80,20 +78,67 @@ Out.checkInputs = function() {
 
 Out.ar = function (bus,signals) {
     obj = Object.create(Out)
-    obj.name = "%Out.ar"
+    obj.name = "Out"
     obj.addToGraph("audio", bus, signals)
     return obj
 }
 
 Out.kr = function (bus,signals) {
     obj = Object.create(Out)
-    obj.name = "%Out.kr"
+    obj.name = "Out"
     out.addToGraph("control", bus, signals)
     return obj
 }
 
-
 var Control = Object.create(UGen)
+
+Control.kr = function(values) {
+    obj = Object.create(Control)
+    obj.name = "Control"
+    obj.isControlUGen = true
+    obj.addToGraph("control", values)
+    return obj
+}
+
+Control.ar = function(values) {
+    obj = Object.create(Control)
+    obj.name = "Control"
+    obj.isControlUGen = true
+    obj.addToGraph("audio", values)
+    return obj
+}
+
+// Named Controls. Forcing users to use this.
+var NamedControl = {
+    name: "",
+    rate: "control",
+    values: [],
+    synthDef: undefined,
+    controlIndex: undefined,
+}
+
+function createNamedControlKr(values) {
+    obj = Object.create(NamedControl)
+    obj.synthDef = UGen.synthDefContext
+    obj.name = this.toString()
+    obj.rate = 'control'
+    obj.values = values
+    obj.synthDef.addControl(obj)
+    return Control.kr(values)
+}
+
+function createNamedControlAr(values) {
+    obj = Object.create(NamedControl)
+    obj.synthDef = UGen.synthDefContext
+    obj.name = this.toString()
+    obj.rate = 'audio'
+    obj.values = values
+    obj.synthDef.addControl(obj)
+    return Control.ar(values)
+}
+
+Reflect.set(String.prototype, 'kr', createNamedControlKr)
+Reflect.set(String.prototype, 'ar', createNamedControlAr)
 
 
 

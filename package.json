@@ -24,6 +24,7 @@
   "homepage": "https://github.com/jackkilgore/synthdefjs#readme",
   "dependencies": {
     "acorn": "^8.2.4",
-    "acorn-walk": "^8.1.0"
+    "acorn-walk": "^8.1.0",
+    "synthdef-json-decoder": "^1.0.2"
   }
 }

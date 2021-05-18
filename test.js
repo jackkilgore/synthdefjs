@@ -8,11 +8,13 @@ let def0 = SynthDef("def0", () => {
 })
 
 
-// This is an unelegant way to pass args. We can't even have non-default'ed args yet!
-let def1 = SynthDef("def1", (freq = 220, amp = 0.5, out = 0) => {
-    let sig = SinOsc.kr(freq, amp)
-    let a = Out.ar(out, sig)
-})
+// let def2_deprecated = SynthDef("def2_deprecated", (freq, amp, out) => {
+//     let sig = SinOsc.kr(freq, amp)
+//     let a = Out.ar(out, sig)
+// })
 
-// console.log(def1.children[1].inputs[1])
-// console.log(def1.children[1].inputs[1].isValidUGenInput)
+// I think I will stick to the named argument style.
+let def3 = SynthDef("def3", () => {
+    let sig = SinOsc.kr("freq".kr(220), "amp".kr(0.5))
+    let a = Out.ar("out".kr(0), sig)
+})
