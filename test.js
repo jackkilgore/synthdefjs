@@ -26,46 +26,7 @@ let def4 = SynthDef("def4", () => {
     let a = Out.ar("out".kr(0), sig)
 })
 
-// Testing the retrieval of info needed for the synthdef.
-paramValues = []
-paramIndicies = []
-for(let i = 0; i < def3.controls.length; i++) {
-    paramValues.push(def3.controls[i].values)
-    let index = {"name": def3.controls[i].name, "index": i}
-    paramIndicies.push(index)
-}
 
-console.log(paramValues)
-console.log(paramIndicies)
+let def3Format = def3.readableSynthDefFile()
 
-ugens = []
-for(let i = 0; i < def3.nodes.length; i++) {
-    let index = {
-        "name": def3.nodes[i].name, 
-        "rate": def3.nodes[i].rate, 
-        "num_inputs": def3.nodes[i].inputs.length, 
-        "num_outputs": 1, 
-        "special index": undefined,
-        "inputs": [],
-        "outputs": []
-    }
-    for(let j = 0; j < def3.nodes[i].inputs.length; j++) {
-        if( Number.isFinite(def3.nodes[i].inputs[j])) {
-            let maybe_const_index = def3.constants.indexOf(def3.nodes[i].inputs[j])
-            if(maybe_const_index === -1) {
-                throw "ERROR: Constant does not exist in the synthdef's constant set."
-            }
-            index.inputs.push([-1, maybe_const_index]) 
-        // if exits in synth nodes, place in inputs. Maybe switch to using maps for nodes. SPEEED
-        } else if (def3.nodes.indexOf(def3.nodes[i].inputs[j]) > -1) { 
-            index.inputs.push([def3.nodes[i].inputs[j].synthIndex, 0]) // 0 is the output index, 0 if we only have mono outputs
-        }
-    }
-    index.outputs[i].push("audio")
-    // for(let j = 0; j < def3.nodes[i].outputs.length; j++) {
-    //     index.outputs[i].push(def3.nodes[i].rate)
-    // }
-    ugens.push(index)
-}
-
-console.log(ugens)
+console.log(def3Format)

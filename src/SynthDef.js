@@ -79,6 +79,59 @@ var SynthDefTemplate = {
 
     },
 
+    readableSynthDefFile: function() {
+        let SynthDefFile = {}
+
+        SynthDefFile.name = this.name
+        SynthDefFile.numConstants = this.constants.length
+        SynthDefFile.ConstantValues = []
+        for (let i = 0; i < this.constants.length; i++) {
+            SynthDefFile.ConstantValues.push(this.constants[i])
+        }
+
+        SynthDefFile.numParameters = this.controls.length
+        SynthDefFile.ParameterValues = []
+        SynthDefFile.ParameterNames = []
+        for(let i = 0; i < this.controls.length; i++) {
+            SynthDefFile.ParameterValues.push(this.controls[i].values)
+            SynthDefFile.ParameterNames.push({"name": this.controls[i].name, "index": i})
+        }
+
+        SynthDefFile.UGens = []
+        for(let i = 0; i < this.nodes.length; i++) {
+            let index = {
+                "name": this.nodes[i].name, 
+                "rate": this.nodes[i].rate, 
+                "num_inputs": this.nodes[i].inputs.length, 
+                "num_outputs": 1, 
+                "special index": undefined,
+                "inputs": [],
+                "outputs": []
+            }
+            for(let j = 0; j < this.nodes[i].inputs.length; j++) {
+                if( Number.isFinite(this.nodes[i].inputs[j])) {
+                    let maybe_const_index = this.constants.indexOf(this.nodes[i].inputs[j])
+                    if(maybe_const_index === -1) {
+                        throw "ERROR: Constant does not exist in the synthdef's constant set."
+                    }
+                    index.inputs.push([-1, maybe_const_index]) 
+                // if exits in synth nodes, place in inputs. Maybe switch to using maps for nodes. SPEEED
+                } else if (this.nodes.indexOf(this.nodes[i].inputs[j]) > -1) { 
+                    index.inputs.push([this.nodes[i].inputs[j].synthIndex, 0]) // 0 is the output index, 0 if we only have mono outputs
+                }
+            }
+            // TODO : arbitrary number of outputs
+            index.outputs.push("audio")
+            // for(let j = 0; j < def3.nodes[i].outputs.length; j++) {
+            //     index.outputs[i].push(def3.nodes[i].rate)
+            // }
+            SynthDefFile.UGens.push(index)
+        }
+        SynthDefFile.numVariants = 0
+
+        return SynthDefFile
+    },
+
     // Deprecated for now
     convertArgsToControls: function() {
         let arg_names = []
