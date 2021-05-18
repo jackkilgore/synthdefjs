@@ -1,5 +1,6 @@
 const {UGen, Control} = require('./UGen')
 const {captureArguments} = require('./Utilities')
+const fs = require("fs");
 
 var SynthDefTemplate = {
     init: function(name, func_graph) {
@@ -76,6 +77,12 @@ var SynthDefTemplate = {
 
         control.controlIndex = this.controls.length
         this.controls.push(control)
+
+    },
+
+    writeSynthDefFile: function() {
+        let def = this.readableSynthDefFile()
+        // TODO: convert everything to a byte stream for writing to file or sending to OSC.
 
     },
 
