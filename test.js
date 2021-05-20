@@ -32,5 +32,4 @@ let def3Format = def3.readableSynthDefFile()
 
 console.log(def3)
 
-let def3Bytes = def3.writeSynthDefFile()
-
+let def3Bytes = def3.writeToBytes()

@@ -74,8 +74,6 @@ function addPascalStrToArray8(array8, index, string) {
     return index
 }
 
-const num_to_hex = num => num.toString(16)
-const hex_to_num = hex => parseInt(hex,16)
 
 // TODO add check to see if `num` is within the range of the inputted bits...
 function addIntToArray8(array8, index, num, bits) {
@@ -87,7 +85,7 @@ function addIntToArray8(array8, index, num, bits) {
     }
 
     let hex_num 
-    hex_num = num_to_hex(Math.abs(num))
+    hex_num = Math.abs(num).toString(16)
 
     let hex_size = bits / 4
     let i = 0
@@ -96,13 +94,13 @@ function addIntToArray8(array8, index, num, bits) {
     //console.log(hex_num)
     if(num > 0) {
         while(i < hex_size) {
-            array8[index] = hex_to_num(hex_num.substr(i,2))
+            array8[index] = parseInt(hex_num.substr(i,2),16)
             i += 2
             index += 1
         }
     } else {
         while(i < hex_size) {
-            array8[index] = ~hex_to_num(hex_num.substr(i,2))
+            array8[index] = ~parseInt(hex_num.substr(i,2),16)
             i += 2
             index += 1
         }

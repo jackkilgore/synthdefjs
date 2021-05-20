@@ -79,16 +79,18 @@ var SynthDefTemplate = {
         this.controls.push(control)
 
     },
+
+    writeToFile: function(path) {
+        let byte_def = this.writeToBytes()
+    },
+
     // Calculate the number of bytes according to the SynthDef
     // This is internal so maybe it should not exist in the SynthDef object
     // How could we do something like that?
     numberOfBytes: function() {
     },
 
-    writeSynthDefFile: function() {
-        let def = this.readableSynthDefFile()
-        // TODO: convert everything to a byte stream for writing to file or sending to OSC.
-        
+    writeToBytes: function() {        
         // We need to specify the size beforehand. We can do some analysis on `def`.
         // Before we go any further, 
         //  let us make sure we like the format returned by `readableSynthDefFile()`
@@ -98,8 +100,94 @@ var SynthDefTemplate = {
         //let size = this.numberOfBytes()
         let size = 65536
         let index = 0
-        var output = new Uint8Array(size) //
+        let output = new Uint8Array(size)
 
+        // Synth name
+        index = addPascalStrToArray8(output,index,this.name)
+
+        // Num Constants and constants
+        index = addIntToArray8(output, index, this.constants.length, 32)
+        for(let i = 0; i < this.constants.length; i++) {
+            index = addFloat32ToArray8(output, index, this.constants[i])
+        }
+
+        // Num of controls and their respective default values.
+        index = addIntToArray8(output, index, this.controls.length, 32)
+        for(let i = 0; i < this.controls.length; i++) {
+            // TODO: Only allows one value for now
+            index = addFloat32ToArray8(output, index, this.controls[i].values[0]) 
+        }
+
+        // Num of control names and their respective names. The samee as the above number at the moment.
+        index = addIntToArray8(output, index, this.controls.length, 32)
+        // Add param-name
+        for(let i = 0; i < this.controls.length; i++) {
+            index = addPascalStrToArray8(output, index, this.controls[i].name) 
+            index = addIntToArray8(output, index, i ,32) 
+        }
+
+        // Num of UGens
+        index = addIntToArray8(output, index, this.nodes.length, 32)
+        // Add ugen-spec
+        for(let i = 0; i < this.nodes.length; i++) {
+            // UGen name
+            index = addPascalStrToArray8(output, index, this.nodes[i].name) 
+
+            // UGen rate
+            let rate_str = this.nodes[i].rate
+            let rate_int
+            if(rate_str === "scalar") {
+                rate_int = 0
+            } else if (rate_str === "control") {
+                rate_int = 1
+            } else if (rate_str === "audio") {
+                rate_int = 2
+            } else {
+                throw "ERROR: UGen has invalid rate!"
+            }
+            index = addIntToArray8(output, index, rate_int ,8) 
+
+            // Number of inputs 
+            index = addIntToArray8(output, index, this.nodes[i].inputs.length ,32) 
+
+            // TODO: Number of outputs (just 1 for now)
+            index = addIntToArray8(output, index, 1 ,32)
+
+            // Special index TODO: deal with this when you got to BinOp stuff
+            index = addIntToArray8(output, index, 0 ,16)
+
+            // Add input-spec
+            for(let j = 0; j < this.nodes[i].inputs.length; j++) {
+                // Case where the input is a constant. 
+                // TODO: Generalize this for arrays.
+                if( Number.isFinite(this.nodes[i].inputs[j])) {
+                    let maybe_const_index = this.constants.indexOf(this.nodes[i].inputs[j])
+                    if(maybe_const_index === -1) {
+                        throw "ERROR: Constant does not exist in the synthdef's constant set."
+                    }
+                    index = addIntToArray8(output, index, -1 ,32)
+                    index = addIntToArray8(output, index, maybe_const_index ,32)
+                     
+                } 
+                // Case where the input is a UGen.
+                else if (this.nodes.indexOf(this.nodes[i].inputs[j]) > -1) { 
+                    index = addIntToArray8(output, index, this.nodes[i].inputs[j].synthIndex ,32)
+                    // TODO: Since we only are allowing mono outputs, we hardcode output index to be 0
+                    index = addIntToArray8(output, index, 0 ,32)
+                }
+            }
+
+            // TODO: Add output-spec
+            for(let j = 0; j < 1; j++) {
+                index = addIntToArray8(output, index, rate_int , 8) // Hard-coded to always be same as UGen's rate
+            }
+        }
+
+        // Number of variants...hard coded to 0.
+        index = addIntToArray8(output, index, 0 , 16)
+        // Since number of variants is 0, no variant-spec. We are done.
+
+        return output.subarray(0, index)
     },
 
     readableSynthDefFile: function() {
