@@ -1,5 +1,5 @@
 const {UGen, Control} = require('./UGen')
-const {captureArguments, addIntToArray8, addFloat32ToArray8, addPascalStrToArray8} = require('./Utilities')
+const {captureArguments, addIntToArray8, addFloat32ToArray8, addPascalStrToArray8, float32ToInt32} = require('./Utilities')
 const fs = require("fs");
 
 var SynthDefTemplate = {
@@ -81,7 +81,34 @@ var SynthDefTemplate = {
     },
 
     writeToFile: function(path) {
+        var stream = fs.createWriteStream(path)
+
+
         let byte_def = this.writeToBytes()
+        //console.log(float32ToInt32(0))
+        //let byte_def = new Uint8Array(3)
+        // Add header
+        const HEADER_SIZE = 10
+        let header = new Uint8Array(10)
+        const file_type_id = "SCgf"
+        for(let i = 0; i < file_type_id.length; i++) {
+            header[i] = file_type_id.charCodeAt(i)
+        }
+        // File version: 2
+        const FILE_VERSION = 2 
+        addIntToArray8(header, 4, FILE_VERSION, 32)
+
+        // Number of SynthDefs: 1
+        const NUM_SYNTH_DEFS = 1 
+        addIntToArray8(header, 8, NUM_SYNTH_DEFS, 16)
+
+        console.log(header)
+        console.log(byte_def)
+
+        stream.on('error', console.error);
+        stream.write(header)
+        stream.write(byte_def)
+        stream.end()
     },
 
     // Calculate the number of bytes according to the SynthDef

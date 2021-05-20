@@ -80,7 +80,7 @@ function addIntToArray8(array8, index, num, bits) {
     if(bits !== 8 && bits !== 16 && bits !== 32 && bits !== 64) {
         throw `ERROR: num of bits inputted: ${bits}. Mut be 8, 16, 32, or 64.`
     }
-    if(index + bits / 8 >= array8.length) {
+    if(index + bits / 8 > array8.length) {
         throw `ERROR: int${bits} too large to be inserted into array8!`
     }
 
@@ -92,7 +92,7 @@ function addIntToArray8(array8, index, num, bits) {
     hex_num = '0'.repeat(hex_size - hex_num.length) + hex_num
     
     //console.log(hex_num)
-    if(num > 0) {
+    if(num >= 0) {
         while(i < hex_size) {
             array8[index] = parseInt(hex_num.substr(i,2),16)
             i += 2
@@ -131,6 +131,7 @@ function float32ToInt32(value) {
     switch (value) {
         case Number.POSITIVE_INFINITY: bytes = 0x7F800000; break;
         case Number.NEGATIVE_INFINITY: bytes = 0xFF800000; break;
+        case 0: bytes = 0x00000000; break;
         case +0.0: bytes = 0x40000000; break;
         case -0.0: bytes = 0xC0000000; break;
         default:
@@ -164,4 +165,5 @@ module.exports = {
     addIntToArray8,
     addFloat32ToArray8,
     isArray,
+    float32ToInt32,
 }
