@@ -40,6 +40,7 @@ var UGen = {
 
 var SinOsc = Object.create(UGen)
 
+// Figure out how to reduce this verbosity
 
 SinOsc.ar = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
     obj = Object.create(SinOsc)
@@ -54,7 +55,6 @@ SinOsc.kr = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
     obj.addToGraph("control",freq, phase, mul, add)
     return obj
 }
-
 
 var Out = Object.create(UGen)
 

@@ -1,5 +1,6 @@
 const {SynthDef} = require('./src/SynthDef')
 const {Out, SinOsc} = require('./src/UGen')
+const { insertPascalString } = require('./src/Utilities')
 
 
 let def0 = SynthDef("def0", () => {
@@ -29,4 +30,7 @@ let def4 = SynthDef("def4", () => {
 
 let def3Format = def3.readableSynthDefFile()
 
-console.log(def3Format)
+console.log(def3)
+
+let def3Bytes = def3.writeSynthDefFile()
+

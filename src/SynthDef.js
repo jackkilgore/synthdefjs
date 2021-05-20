@@ -1,5 +1,5 @@
 const {UGen, Control} = require('./UGen')
-const {captureArguments} = require('./Utilities')
+const {captureArguments, addIntToArray8, addFloat32ToArray8, addPascalStrToArray8} = require('./Utilities')
 const fs = require("fs");
 
 var SynthDefTemplate = {
@@ -79,10 +79,26 @@ var SynthDefTemplate = {
         this.controls.push(control)
 
     },
+    // Calculate the number of bytes according to the SynthDef
+    // This is internal so maybe it should not exist in the SynthDef object
+    // How could we do something like that?
+    numberOfBytes: function() {
+    },
 
     writeSynthDefFile: function() {
         let def = this.readableSynthDefFile()
         // TODO: convert everything to a byte stream for writing to file or sending to OSC.
+        
+        // We need to specify the size beforehand. We can do some analysis on `def`.
+        // Before we go any further, 
+        //  let us make sure we like the format returned by `readableSynthDefFile()`
+        // Make a global buffer of 65K that can be reused?
+        
+        // Do it in a JS array and treat each element as a byte -> convert to unint8array 
+        //let size = this.numberOfBytes()
+        let size = 65536
+        let index = 0
+        var output = new Uint8Array(size) //
 
     },
 
