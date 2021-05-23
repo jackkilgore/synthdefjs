@@ -96,7 +96,7 @@ Control.kr = function(values) {
     obj = Object.create(Control)
     obj.name = "Control"
     obj.isControlUGen = true
-    obj.addToGraph("control", values)
+    obj.addToGraph("control") // No input
     return obj
 }
 
@@ -104,7 +104,7 @@ Control.ar = function(values) {
     obj = Object.create(Control)
     obj.name = "Control"
     obj.isControlUGen = true
-    obj.addToGraph("audio", values)
+    obj.addToGraph("audio") 
     return obj
 }
 
@@ -124,7 +124,7 @@ function createNamedControlKr(values) {
     obj.rate = 'control'
     obj.values = values
     obj.synthDef.addControl(obj)
-    return Control.kr(values)
+    return Control.kr()
 }
 
 function createNamedControlAr(values) {
@@ -134,7 +134,7 @@ function createNamedControlAr(values) {
     obj.rate = 'audio'
     obj.values = values
     obj.synthDef.addControl(obj)
-    return Control.ar(values)
+    return Control.ar()
 }
 
 Reflect.set(String.prototype, 'kr', createNamedControlKr)

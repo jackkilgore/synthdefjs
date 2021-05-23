@@ -1,5 +1,5 @@
-const {UGen, Control} = require('./UGen')
-const {captureArguments, addIntToArray8, addFloat32ToArray8, addPascalStrToArray8, float32ToInt32} = require('./Utilities')
+const {UGen} = require('./UGen')
+const {captureArguments, addIntToArray8, addFloat32ToArray8, addPascalStrToArray8, isArray} = require('./Utilities')
 const fs = require("fs");
 
 var SynthDefTemplate = {
@@ -18,7 +18,7 @@ var SynthDefTemplate = {
         console.log("Number of nodes:", this.nodes.length)
         if(!this.checkNodesInputs()) {
             return
-        }
+       }
         this.collectConstants()
 
     },
@@ -88,7 +88,7 @@ var SynthDefTemplate = {
         //console.log(float32ToInt32(0))
         //let byte_def = new Uint8Array(3)
         // Add header
-        const HEADER_SIZE = 10
+    const HEADER_SIZE = 10
         let header = new Uint8Array(10)
         const file_type_id = "SCgf"
         for(let i = 0; i < file_type_id.length; i++) {
@@ -142,10 +142,14 @@ var SynthDefTemplate = {
         index = addIntToArray8(output, index, this.controls.length, 32)
         for(let i = 0; i < this.controls.length; i++) {
             // TODO: Only allows one value for now
-            index = addFloat32ToArray8(output, index, this.controls[i].values[0]) 
+            if(isArray(this.controls[i].values)) {
+                throw "ERROR: writing to bytes doesn't support controls with an array of values."
+            } else {
+                index = addFloat32ToArray8(output, index, this.controls[i].values) 
+            }
         }
 
-        // Num of control names and their respective names. The samee as the above number at the moment.
+        // Num of control names and their respective names. The same as the above number at the moment.
         index = addIntToArray8(output, index, this.controls.length, 32)
         // Add param-name
         for(let i = 0; i < this.controls.length; i++) {
