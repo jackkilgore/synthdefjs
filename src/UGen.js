@@ -4,6 +4,7 @@ const {isArray} = require('./Utilities')
 var UGen = {
     synthDefContext: undefined, // Will be defined when a SynthDef is initialized.
     isValidUGenInput: true, // We need to somehow define this value for all objects
+    specialIndex: 0,
     name: "UGen",
     addToGraph: function(rate, args) {
         this.synthDef = undefined
@@ -39,16 +40,38 @@ var UGen = {
 }
 
 // The goal: disgusting JS
+/*
+ * Generate a basic UGen def with .ar, .kr, and .ir methods. 
+ * 
+ * name : The name of the UGen 
+ * rates: an array of strings where each string is audio | control | scalar. 
+ *      - Generates a ".ar", ".kr", and ".ir" for t he returned object, respectively.
+ * sign_args: A dictionary denoting the signature of the ".ar", ".kr", and ".ir" functions. 
+ *      - Of the format {input1: default_value, input2: default_value} 
+ *      - If there is no default value, use keyword "undefined"
+ * 
+ * Example: 
+ * var Test = genBasicUGenDef("Test", 
+ *              ["audio, control], // will genrate a ".ar" and ".kr" method
+ *              {
+ *               input1: undefined, // Required argument for ".ar" and ".kr" method
+ *               input2: 220        // Optional argument that defaults to 220
+ *              }
+ *             )
+ * 
+ */
 function genBasicUGenDef(name, rates, sign_args) {
     var output = Object.create(UGen)
 
     if(rates.indexOf("audio") !== -1) {
-        output.ar = function(...inst_args) {
-
+        output.ar = (...inst_args) => {
             // Insert default arguments if necessary.
             let arg_count = 0
             for (let key in sign_args) {
                 if(typeof inst_args[arg_count]  === 'undefined') {
+                    if(sign_args[key] === 'undefined') {
+
+                    }
                     inst_args[arg_count] = sign_args[key]
                 }
                 arg_count += 1
@@ -69,7 +92,8 @@ function genBasicUGenDef(name, rates, sign_args) {
     }
 
     if (rates.indexOf("control") !== -1) {
-        output.kr = function(...inst_args) {
+        output.kr = (...inst_args) => {
+            // Insert default arguments if necessary.
             let arg_count = 0
             for (let key in sign_args) {
                 if(typeof inst_args[arg_count]  === 'undefined') {
@@ -77,15 +101,42 @@ function genBasicUGenDef(name, rates, sign_args) {
                 }
                 arg_count += 1
             }
+
+            // Check if we have a valid signature
             if(inst_args.length !== arg_count) {
                 console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
                 throw "ERROR: Invalid function signature"
-                
             }
-    
+            
+            // Create object and add to the graph.
             obj = Object.create(output)
             obj.name = name
             obj.addToGraph("control",inst_args)
+            return obj
+        }
+    }
+
+    if (rates.indexOf("scalar") !== -1) {
+        output.kr = (...inst_args) => {
+            // Insert default arguments if necessary.
+            let arg_count = 0
+            for (let key in sign_args) {
+                if(typeof inst_args[arg_count]  === 'undefined') {
+                    inst_args[arg_count] = sign_args[key]
+                }
+                arg_count += 1
+            }
+
+            // Check if we have a valid signature
+            if(inst_args.length !== arg_count) {
+                console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
+                throw "ERROR: Invalid function signature"
+            }
+            
+            // Create object and add to the graph.
+            obj = Object.create(output)
+            obj.name = name
+            obj.addToGraph("scalar",inst_args)
             return obj
         }
     }
@@ -98,7 +149,6 @@ var SinOsc = genBasicUGenDef("SinOsc", ["audio", "control"], {freq: 440.0, phase
 var Out = genBasicUGenDef("Out", ["audio", "control"], {bus: undefined, signals: undefined})
 
 // Overload checkInputs for Out
-
 Out.checkInputs = function() {
     console.log("Outs Check Inputs...")
     if(this.rate === "audio") {
@@ -117,47 +167,9 @@ Out.checkInputs = function() {
     return this.checkValInputs()
 }
 
-
-var Control = genBasicUGenDef("Control", ["audio", "control"])
-
-
-// Named Controls. Forcing users to use this.
-var NamedControl = {
-    name: "",
-    rate: "control",
-    values: [],
-    synthDef: undefined,
-    controlIndex: undefined,
-}
-
-function createNamedControlKr(values) {
-    obj = Object.create(NamedControl)
-    obj.synthDef = UGen.synthDefContext
-    obj.name = this.toString()
-    obj.rate = 'control'
-    obj.values = values
-    obj.synthDef.addControl(obj)
-    return Control.kr()
-}
-
-function createNamedControlAr(values) {
-    obj = Object.create(NamedControl)
-    obj.synthDef = UGen.synthDefContext
-    obj.name = this.toString()
-    obj.rate = 'audio'
-    obj.values = values
-    obj.synthDef.addControl(obj)
-    return Control.ar()
-}
-
-Reflect.set(String.prototype, 'kr', createNamedControlKr)
-Reflect.set(String.prototype, 'ar', createNamedControlAr)
-
-
-
 module.exports = {
 	UGen,
+    genBasicUGenDef,
     SinOsc,
     Out,
-    Control,
 }

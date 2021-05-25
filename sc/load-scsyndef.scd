@@ -21,7 +21,7 @@ c = SynthDef(\def1,{
 )
 
 
-y = Synth(\def1, [freq: 440]);
+y = Synth(\def1, [freq:440]);
 
 
 
