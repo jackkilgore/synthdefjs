@@ -88,7 +88,7 @@ var SynthDefTemplate = {
         //console.log(float32ToInt32(0))
         //let byte_def = new Uint8Array(3)
         // Add header
-    const HEADER_SIZE = 10
+        const HEADER_SIZE = 10
         let header = new Uint8Array(10)
         const file_type_id = "SCgf"
         for(let i = 0; i < file_type_id.length; i++) {

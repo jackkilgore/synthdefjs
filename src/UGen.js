@@ -38,6 +38,69 @@ var UGen = {
     }
 }
 
+// The goal: disgusting JS
+function genBasicUGen(name, rates, args) {
+    var output = Object.create(UGen)
+
+    if(rates.indexOf("audio") !== -1) {
+        output.ar = function(...ar_args) {
+
+            // Insert default arguments if necessary.
+            let arg_count = 0
+            for (let key in args) {
+                if(typeof ar_args[arg_count]  === 'undefined') {
+                    ar_args[arg_count] = args[key]
+                }
+                arg_count += 1
+            }
+
+            // Check if we have a valid signature
+            if(ar_args.length !== arg_count) {
+                console.error(`INVALID input: function has signature (${Object.keys(args)})`)
+                throw "ERROR: Invalid function signature"
+            }
+            
+            // Create object and add to the graph.
+            obj = Object.create(output)
+            obj.name = name
+            obj.addToGraph("audio",args)
+            return obj
+        }
+    }
+
+    if (rates.indexOf("control") !== -1) {
+        output.kr = function(...ar_args) {
+            let arg_count = 0
+            for (let key in args) {
+                if(typeof ar_args[arg_count]  === 'undefined') {
+                    ar_args[arg_count] = args[key]
+                }
+                arg_count += 1
+            }
+            if(ar_args.length !== arg_count) {
+                console.error(`INVALID input: function has signature (${Object.keys(args)})`)
+                throw "ERROR: Invalid function signature"
+                
+            }
+    
+            obj = Object.create(output)
+            obj.name = name
+            obj.addToGraph("control",args)
+            return obj
+        }
+    }
+    
+    return output
+}
+// Testing the basic generation of UGens
+var Test = genBasicUGen("Test", ["audio","control"], {freq: 440.0, phase : 0.0} )
+Test.ar(120, 30)
+Test.kr(120, 30)
+
+
+var BinaryOpUGen = Object.create(UGen)
+
+
 var SinOsc = Object.create(UGen)
 
 // Figure out how to reduce this verbosity
