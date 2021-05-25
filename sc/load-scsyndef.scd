@@ -1,4 +1,4 @@
-s.sendMsg("/d_load", "/path/to/scsyndef");
+s.sendMsg("/d_load", "/Users/jkilgore/Desktop/doi.scsyndef");
 
 
 (
@@ -21,7 +21,7 @@ c = SynthDef(\def1,{
 )
 
 
-y = Synth(\def1, [freq: 200]);
+y = Synth(\def1, [freq: 440]);
 
 
 

@@ -5,12 +5,12 @@ var UGen = {
     synthDefContext: undefined, // Will be defined when a SynthDef is initialized.
     isValidUGenInput: true, // We need to somehow define this value for all objects
     name: "UGen",
-    addToGraph: function(rate, ...args) {
+    addToGraph: function(rate, args) {
         this.synthDef = undefined
         this.synthIndex = undefined
         this.rate = rate
         this.inputs = args
-    
+        console.log("TODO: assert that args is an array in addToGraph")
         console.log("Construcing UGen into SynthDef...")
     
         this.addToSynthDef()
@@ -39,87 +39,65 @@ var UGen = {
 }
 
 // The goal: disgusting JS
-function genBasicUGen(name, rates, args) {
+function genBasicUGenDef(name, rates, sign_args) {
     var output = Object.create(UGen)
 
     if(rates.indexOf("audio") !== -1) {
-        output.ar = function(...ar_args) {
+        output.ar = function(...inst_args) {
 
             // Insert default arguments if necessary.
             let arg_count = 0
-            for (let key in args) {
-                if(typeof ar_args[arg_count]  === 'undefined') {
-                    ar_args[arg_count] = args[key]
+            for (let key in sign_args) {
+                if(typeof inst_args[arg_count]  === 'undefined') {
+                    inst_args[arg_count] = sign_args[key]
                 }
                 arg_count += 1
             }
 
             // Check if we have a valid signature
-            if(ar_args.length !== arg_count) {
-                console.error(`INVALID input: function has signature (${Object.keys(args)})`)
+            if(inst_args.length !== arg_count) {
+                console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
                 throw "ERROR: Invalid function signature"
             }
             
             // Create object and add to the graph.
             obj = Object.create(output)
             obj.name = name
-            obj.addToGraph("audio",args)
+            obj.addToGraph("audio",inst_args)
             return obj
         }
     }
 
     if (rates.indexOf("control") !== -1) {
-        output.kr = function(...ar_args) {
+        output.kr = function(...inst_args) {
             let arg_count = 0
-            for (let key in args) {
-                if(typeof ar_args[arg_count]  === 'undefined') {
-                    ar_args[arg_count] = args[key]
+            for (let key in sign_args) {
+                if(typeof inst_args[arg_count]  === 'undefined') {
+                    inst_args[arg_count] = sign_args[key]
                 }
                 arg_count += 1
             }
-            if(ar_args.length !== arg_count) {
-                console.error(`INVALID input: function has signature (${Object.keys(args)})`)
+            if(inst_args.length !== arg_count) {
+                console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
                 throw "ERROR: Invalid function signature"
                 
             }
     
             obj = Object.create(output)
             obj.name = name
-            obj.addToGraph("control",args)
+            obj.addToGraph("control",inst_args)
             return obj
         }
     }
     
     return output
 }
-// Testing the basic generation of UGens
-var Test = genBasicUGen("Test", ["audio","control"], {freq: 440.0, phase : 0.0} )
-Test.ar(120, 30)
-Test.kr(120, 30)
 
+var SinOsc = genBasicUGenDef("SinOsc", ["audio", "control"], {freq: 440.0, phase: 0.0})
 
-var BinaryOpUGen = Object.create(UGen)
+var Out = genBasicUGenDef("Out", ["audio", "control"], {bus: undefined, signals: undefined})
 
-
-var SinOsc = Object.create(UGen)
-
-// Figure out how to reduce this verbosity
-
-SinOsc.ar = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
-    obj = Object.create(SinOsc)
-    obj.name = "SinOsc"
-    obj.addToGraph("audio",freq, phase, mul, add)
-    return obj
-}
-
-SinOsc.kr = function (freq = 440.0, phase = 0.0, mul = 1.0, add = 0.0) {
-    obj = Object.create(SinOsc)
-    obj.name = "SinOsc"
-    obj.addToGraph("control",freq, phase, mul, add)
-    return obj
-}
-
-var Out = Object.create(UGen)
+// Overload checkInputs for Out
 
 Out.checkInputs = function() {
     console.log("Outs Check Inputs...")
@@ -139,37 +117,9 @@ Out.checkInputs = function() {
     return this.checkValInputs()
 }
 
-Out.ar = function (bus,signals) {
-    obj = Object.create(Out)
-    obj.name = "Out"
-    obj.addToGraph("audio", bus, signals)
-    return obj
-}
 
-Out.kr = function (bus,signals) {
-    obj = Object.create(Out)
-    obj.name = "Out"
-    out.addToGraph("control", bus, signals)
-    return obj
-}
+var Control = genBasicUGenDef("Control", ["audio", "control"])
 
-var Control = Object.create(UGen)
-
-Control.kr = function(values) {
-    obj = Object.create(Control)
-    obj.name = "Control"
-    obj.isControlUGen = true
-    obj.addToGraph("control") // No input
-    return obj
-}
-
-Control.ar = function(values) {
-    obj = Object.create(Control)
-    obj.name = "Control"
-    obj.isControlUGen = true
-    obj.addToGraph("audio") 
-    return obj
-}
 
 // Named Controls. Forcing users to use this.
 var NamedControl = {

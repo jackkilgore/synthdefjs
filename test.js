@@ -2,16 +2,16 @@ const {SynthDef} = require('./src/SynthDef')
 const {Out, SinOsc} = require('./src/UGen')
 
 
-let def0 = SynthDef("def0", () => {
-    let sig = SinOsc.ar(220, 0, 0.5)
-    Out.ar(0, sig)
-})
+// let def0 = SynthDef("def0", () => {
+//     let sig = SinOsc.ar(220, 0)
+//     Out.ar(0, sig)
+// })
 
 // I think I will stick to the named argument style.
-// let def1 = SynthDef("def1", () => {
-//     let sig = SinOsc.ar("freq".kr(220), 0, 0.2)
-//     let a = Out.ar(0, sig)
-// })
+let def1 = SynthDef("def1", () => {
+    let sig = SinOsc.ar("freq".kr(220), 0)
+    let a = Out.ar(0, sig)
+}).writeToFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
 // // Figuring out how to deal with BinaryOpUGen
 // let def2 = SynthDef("def2", () => {
