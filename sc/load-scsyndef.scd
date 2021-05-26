@@ -12,6 +12,13 @@ c = SynthDef(\def0,{
 
 x = Synth(\def0);
 
+y = Synth(\def1, [freq:440]);
+
+z = Synth(\def3, [freq:440]);
+
+a = Synth(\def4, [freq:440]);
+
+
 
 (
 c = SynthDef(\def1,{
@@ -19,12 +26,6 @@ c = SynthDef(\def1,{
     Out.ar(0, sig);
 }).asBytes.printOn(Post); nil
 )
-
-
-y = Synth(\def1, [freq:440]);
-
-
-
 Int8Array[
 	83, 67, 103, 102, 0, 0, 0, 2, 0, 1,
 	// Name of Ugen

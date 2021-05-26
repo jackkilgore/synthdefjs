@@ -29,7 +29,8 @@ function createNamedControlAr(values) {
     obj.rate = 'audio'
     obj.values = values
     obj.synthDef.addControl(obj)
-    return Control.ar()
+    control = Control.ar()
+    return control
 }
 
 Reflect.set(String.prototype, 'kr', createNamedControlKr)

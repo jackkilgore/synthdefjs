@@ -184,8 +184,8 @@ var SynthDefTemplate = {
             // TODO: Number of outputs (just 1 for now)
             index = addIntToArray8(output, index, 1 ,32)
 
-            // Special index TODO: deal with this when you got to BinOp stuff
-            index = addIntToArray8(output, index, 0 ,16)
+            // Special index: Used for BinOp stuff
+            index = addIntToArray8(output, index, this.nodes[i].specialIndex ,16)
 
             // Add input-spec
             for(let j = 0; j < this.nodes[i].inputs.length; j++) {
@@ -246,7 +246,7 @@ var SynthDefTemplate = {
                 "rate": this.nodes[i].rate, 
                 "num_inputs": this.nodes[i].inputs.length, 
                 "num_outputs": 1, 
-                "special index": undefined,
+                "special index": this.nodes[i].specialIndex,
                 "inputs": [],
                 "outputs": []
             }

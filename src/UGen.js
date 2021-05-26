@@ -69,8 +69,9 @@ function genBasicUGenDef(name, rates, sign_args) {
             let arg_count = 0
             for (let key in sign_args) {
                 if(typeof inst_args[arg_count]  === 'undefined') {
+                    // If missing required argument, fail
                     if(sign_args[key] === 'undefined') {
-
+                        throw "ERROR: missing required argument"
                     }
                     inst_args[arg_count] = sign_args[key]
                 }
@@ -117,7 +118,7 @@ function genBasicUGenDef(name, rates, sign_args) {
     }
 
     if (rates.indexOf("scalar") !== -1) {
-        output.kr = (...inst_args) => {
+        output.ir = (...inst_args) => {
             // Insert default arguments if necessary.
             let arg_count = 0
             for (let key in sign_args) {

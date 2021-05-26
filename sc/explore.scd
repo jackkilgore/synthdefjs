@@ -79,7 +79,7 @@ UGen.new()
 
 
 // BinaryOpUGen
-d = BinaryOpUGen('-', a, b)
+d = BinaryOpUGen('*', a, b)
 d.specialIndex
 
 
