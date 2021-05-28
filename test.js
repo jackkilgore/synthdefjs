@@ -14,27 +14,27 @@ let sc = require("./src/include-synthdef")
 
 // Figuring out how to deal with BinaryOpUGen
 // This works!
-let def2 = sc.SynthDef("def2", () => {
-    let sig = sc.SinOsc.ar("freq".kr(220))
-    let scale_sig = sc.BinOp("*",sig, 0.5)
-    sc.Out.ar(0,scale_sig)
-})
+// let def2 = sc.SynthDef("def2", () => {
+//     let sig = sc.SinOsc.ar("freq".kr(220))
+//     let scale_sig = sc.BinOp("*",sig, 0.5)
+//     sc.Out.ar(0,scale_sig)
+// })
 
-// Multiplying the amplitude of a sine wave by a sine wave works. Nice.
-let def3 = sc.SynthDef("def3", () => {
-    let sig = sc.SinOsc.ar("freq".kr(220))
-    let mod = sc.SinOsc.ar(1)
-    let scale_sig = sc.BinOp("*",sig, mod)
-    sc.Out.ar(0,scale_sig)
-})
+// // Multiplying the amplitude of a sine wave by a sine wave works. Nice.
+// let def3 = sc.SynthDef("def3", () => {
+//     let sig = sc.SinOsc.ar("freq".kr(220))
+//     let mod = sc.SinOsc.ar(1)
+//     let scale_sig = sc.BinOp("*",sig, mod)
+//     sc.Out.ar(0,scale_sig)
+// }).writeToFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
-// WARNING, the outputted synthdef is very loud
+// // WARNING, the outputted synthdef is very loud
 // Currently passing a control to BinOp is broken
 let def4 = sc.SynthDef("def4", () => {
     let sig = sc.SinOsc.ar("freq".kr(220))
     let scale_sig = sc.BinOp("*",sig, "amp".kr(0.5))
     sc.Out.ar(0,scale_sig)
-}).writeToFile("/path/to/obj.scsyndef")
+}).writeToFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
 // Make sure something like this works:
 /*
@@ -50,4 +50,7 @@ let def5 = SynthDef("def5", () => {
 
 // If you load this file into SC, it fails silently (literally). 
 //console.log(def1.readableSynthDefFile())
-//def1.writeToFile("/path/to/scsyndef")
+//def1.writeToFile("/path/to/obj.scsyndef")
+
+
+// console.log(test)

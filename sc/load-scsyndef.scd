@@ -14,9 +14,17 @@ x = Synth(\def0);
 
 y = Synth(\def1, [freq:440]);
 
-z = Synth(\def3, [freq:440]);
+z = Synth(\def3, [freq:220]);
 
-a = Synth(\def4, [freq:440]);
+(
+SynthDef(\def4, {
+	var sig = SinOsc.ar(\freq.kr(220));
+	var scale_sig = BinaryOpUGen('*',sig, \amp.kr(0.5));
+    Out.ar(0,scale_sig);
+}).writeDefFile("/Users/jkilgore/Desktop")
+)
+
+a = Synth(\def4, [freq:440, amp:0.2]);
 
 
 

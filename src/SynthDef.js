@@ -74,7 +74,6 @@ var SynthDefTemplate = {
             control.rate !== "scalar" && control.rate !== "trigger") {
             throw 'ERROR: Invalid control rate!'
         }
-
         control.controlIndex = this.controls.length
         this.controls.push(control)
 

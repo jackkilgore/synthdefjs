@@ -55,13 +55,16 @@ const Operator = {
     "ADDITION":0,
     "SUBTRACTION":1,
     "MULTIPLICATION":2,
+    "/": 3, // integer division
+    "/": 4, // float division. need to do some type checking?
 }
 
 var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen", ["audio"],{lhs: undefined, rhs: undefined})
 
 function BinOp(operator, lhs, rhs) {
+    // take advantage of arguments[]
     var obj = BinaryOpUGen.ar(lhs, rhs)
-    obj.specialIndex = Operator("MULTIPLICATION") // hard code to multiplication
+    obj.specialIndex = Operator["MULTIPLICATION"] // hard code to multiplication
     return obj
 }
 

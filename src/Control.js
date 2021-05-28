@@ -12,26 +12,51 @@ var NamedControl = {
     controlIndex: undefined,
 }
 
-function createNamedControlKr(values) {
-    obj = Object.create(NamedControl)
-    obj.synthDef = UGen.synthDefContext
-    obj.name = this.toString()
-    obj.rate = 'control'
-    obj.values = values
-    obj.synthDef.addControl(obj)
-    return Control.kr()
-}
-
-function createNamedControlAr(values) {
-    obj = Object.create(NamedControl)
-    obj.synthDef = UGen.synthDefContext
-    obj.name = this.toString()
-    obj.rate = 'audio'
-    obj.values = values
-    obj.synthDef.addControl(obj)
-    control = Control.ar()
+const createNamedControlKr = function(values) {
+    named_control = Object.create(NamedControl)
+    named_control.synthDef = UGen.synthDefContext
+    named_control.name = this.toString()
+    named_control.rate = 'control'
+    named_control.values = values
+    named_control.synthDef.addControl(named_control)
+    control = Control.kr()
+    control.specialIndex = named_control.controlIndex
     return control
 }
+
+const createNamedControlAr = function(values) {
+    named_control = Object.create(NamedControl)
+    named_control.synthDef = UGen.synthDefContext
+    named_control.name = this.toString()
+    named_control.rate = 'audio'
+    named_control.values = values
+    named_control.synthDef.addControl(named_control)
+    control = Control.ar()
+    // In the context of controls, specialIndex = its index in the control array.
+    control.specialIndex = named_control.controlIndex
+    return control
+}
+
+const createNamedControl = (rate, values) => {
+    named_control = Object.create(NamedControl)
+    named_control.synthDef = UGen.synthDefContext
+    named_control.name = this.toString()
+    named_control.rate = rate
+    named_control.values = values
+    named_control.synthDef.addControl(named_control)
+    var control = undefined
+    if(rate === 'control') {
+        control = Control.kr()
+    } else if (rate === 'audio') {
+        control = Control.ar()
+    } else {
+        throw "ERROR: invalid rate"
+    }
+    control.specialIndex = named_control.controlIndex
+    return control
+}
+// Would ideally use this partial application technique. But I can't get 'this' to do what I want :,(
+let createNamedControlKrTEST = createNamedControl.bind(null, 'control')
 
 Reflect.set(String.prototype, 'kr', createNamedControlKr)
 Reflect.set(String.prototype, 'ar', createNamedControlAr)

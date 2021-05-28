@@ -63,32 +63,51 @@ var UGen = {
 function genBasicUGenDef(name, rates, sign_args) {
     var output = Object.create(UGen)
 
+    let test = (rate, ...inst_args) => {
+        // Insert default arguments if necessary.
+        let arg_count = 0
+        for (let key in sign_args) {
+            if(typeof inst_args[arg_count]  === 'undefined') {
+                inst_args[arg_count] = sign_args[key]
+            }
+            arg_count += 1
+        }
+
+        // Check if we have a valid signature
+        if(inst_args.length !== arg_count) {
+            console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
+            throw "ERROR: Invalid function signature"
+        }
+        
+        // Create object and add to the graph.
+        obj = Object.create(output)
+        obj.name = name
+        obj.addToGraph(rate,inst_args)
+        return obj
+    }
+
     if(rates.indexOf("audio") !== -1) {
         output.ar = (...inst_args) => {
             // Insert default arguments if necessary.
-            let arg_count = 0
-            for (let key in sign_args) {
-                if(typeof inst_args[arg_count]  === 'undefined') {
-                    // If missing required argument, fail
-                    if(sign_args[key] === 'undefined') {
-                        throw "ERROR: missing required argument"
-                    }
-                    inst_args[arg_count] = sign_args[key]
-                }
-                arg_count += 1
+        let arg_count = 0
+        for (let key in sign_args) {
+            if(typeof inst_args[arg_count]  === 'undefined') {
+                inst_args[arg_count] = sign_args[key]
             }
+            arg_count += 1
+        }
 
-            // Check if we have a valid signature
-            if(inst_args.length !== arg_count) {
-                console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
-                throw "ERROR: Invalid function signature"
-            }
-            
-            // Create object and add to the graph.
-            obj = Object.create(output)
-            obj.name = name
-            obj.addToGraph("audio",inst_args)
-            return obj
+        // Check if we have a valid signature
+        if(inst_args.length !== arg_count) {
+            console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
+            throw "ERROR: Invalid function signature"
+        }
+        
+        // Create object and add to the graph.
+        obj = Object.create(output)
+        obj.name = name
+        obj.addToGraph("audio",inst_args)
+        return obj
         }
     }
 
