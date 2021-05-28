@@ -24,8 +24,7 @@ SynthDef(\def4, {
 }).writeDefFile("/Users/jkilgore/Desktop")
 )
 
-a = Synth(\def4, [freq:440, amp:0.2]);
-
+a = Synth(\def4, [freq:440, amp:0.01]);
 
 
 (

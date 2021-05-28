@@ -40,6 +40,8 @@ var UGen = {
 }
 
 // The goal: disgusting JS
+// We can try using eval here for calling .ar or something, if we want to be extra evil
+    // not a security risk if we don't expose this eval to a function argument
 /*
  * Generate a basic UGen def with .ar, .kr, and .ir methods. 
  * 

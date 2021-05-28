@@ -51,20 +51,60 @@ const {UGen,genBasicUGenDef} = require('./UGen')
 // UNSIGNED_SHIFT = 28
 // WRAP2 = 45
 
+// const Operator = {
+//     "ADDITION":0,
+//     "SUBTRACTION":1,
+//     "MULTIPLICATION":2,
+//     "/": 3, // integer division
+//     "/": 4, // float division. need to do some type checking. Syntax isn't enough
+// }
+
 const Operator = {
-    "ADDITION":0,
-    "SUBTRACTION":1,
-    "MULTIPLICATION":2,
-    "/": 3, // integer division
-    "/": 4, // float division. need to do some type checking?
+    "ADD": { sindex: 0, op: (a,b) => {return a + b} },
+    "SUB": { sindex: 1, op: (a,b) => {return a - b} },
+    "MUL": { sindex: 2, op: (a,b) => {return a * b} },
+    "I_DIV":  { sindex: 3, op: (a,b) => {return Math.floor(a / b)} },
+    "F_DIV":  { sindex: 4, op: (a,b) => {return a / b} }
 }
 
-var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen", ["audio"],{lhs: undefined, rhs: undefined})
+var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen",  ["audio"], {lhs: undefined, rhs: undefined})
 
 function BinOp(operator, lhs, rhs) {
-    // take advantage of arguments[]
+    let is_const = false
+    if(Number.isFinite(lhs) && Number.isFinite(rhs)) {
+        is_const = true 
+    }
+    let opkey
+    switch(operator) {
+        case "+":
+            opkey = "ADD"
+            break
+        case "-":
+            opkey = "SUB"
+            break
+        case "*":
+            opkey = "MUL"
+            break
+        case "div": // integer division
+            opkey = "I_DIV"
+            break
+        case "/":
+            opkey = "F_DIV"
+            break
+        default:
+            throw "ERROR: Invalid operation passed to BinOp."
+    }
+
+    // Don't make a UGen, just a constant
+    // This is okay because we collect our constants AFTER we build the UGen.
+    // Sidenote: making a visualization of this program would be helpful.
+    if(is_const) {
+        return Operator[opkey].op(lhs,rhs)
+    }
+    console.log("yeet", Operator[opkey])
     var obj = BinaryOpUGen.ar(lhs, rhs)
-    obj.specialIndex = Operator["MULTIPLICATION"] // hard code to multiplication
+    obj.specialIndex = Operator[opkey].sindex
+
     return obj
 }
 

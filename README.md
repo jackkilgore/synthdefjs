@@ -3,8 +3,8 @@ SuperCollider SynthDef in Native Javascript
 
 ## TODO
 25052021
-- NamedControl's break sc.BinOp
-- Need a way to parse BinOp operator into a special index. 
+- [x] NamedControl's break sc.BinOp
+- [ ] Need a way to parse BinOp operator into a special index. 
     - big look up table?
 
 22052021
