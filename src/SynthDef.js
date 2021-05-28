@@ -79,7 +79,7 @@ var SynthDefTemplate = {
 
     },
 
-    writeToFile: function(path) {
+    writeDefFile: function(path) {
         var stream = fs.createWriteStream(path)
 
 

@@ -26,11 +26,10 @@ let sc = require("./src/include-synthdef")
 //     let mod = sc.SinOsc.ar(1)
 //     let scale_sig = sc.BinOp("*",sig, mod)
 //     sc.Out.ar(0,scale_sig)
-// }).writeToFile("/Users/jkilgore/Desktop/doi.scsyndef")
+// }).writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
 let def4 = sc.SynthDef("def4", () => {
     let sig = sc.SinOsc.ar("freq".kr(220))
     let scale_sig = sc.BinOp("*",sig, "amp".kr(0.5))
     sc.Out.ar(0,scale_sig)
-}).readableSynthDefFile()//.writeToFile("/Users/jkilgore/Desktop/doi.scsyndef")
-console.log(def4)
+}).writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")
