@@ -42,10 +42,25 @@ let def5 = sc.SynthDef('def5', () => {
     scale_sig = sc.BinOp('*',scale_sig, amp)
     sc.Out.ar(0,scale_sig)
 })
-def5.writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
-let def5_debug = def5.readableSynthDefFile()
-console.log(def5_debug)
-for(let i = 0; i < def5_debug.UGens.length; i++) {
-	console.log(def5_debug.UGens[i])
+// FM Synth -- Nice
+let def6 = sc.SynthDef('def6', () => {
+	let c_freq = 'c_freq'.kr(220)
+	let m_freq = 'm_freq'.kr(1)
+	let width = 'width'.kr(10)
+	let amp = 'amp'.kr(0.5)
+	let mod = sc.SinOsc.ar(m_freq)
+	mod = sc.MulAdd(mod, width, c_freq)
+    let carrier = sc.SinOsc.ar(mod)
+	carrier = sc.MulAdd(carrier,amp, 0.0) // Should reduce to a BinOp
+    sc.Out.ar(0,carrier)
+})
+
+def_out = def6
+def_out.writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")
+
+let def_out_debug = def_out.readableSynthDefFile()
+console.log(def_out_debug)
+for(let i = 0; i < def_out_debug.UGens.length; i++) {
+	console.log(def_out_debug.UGens[i])
 }

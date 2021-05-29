@@ -1,12 +1,13 @@
 const {SynthDef} = require('./SynthDef')
 const {Out, SinOsc} = require('./UGen')
 const {} = require('./Control')
-const {BinOp} = require('./OpUGens')
+const {BinOp, MulAdd} = require('./OpUGens')
 
 
 module.exports = {
-   SynthDef,
-   BinOp,
-   Out,
-   SinOsc, 
+	SynthDef,
+	BinOp,
+	MulAdd,
+	Out,
+	SinOsc, 
 } 
