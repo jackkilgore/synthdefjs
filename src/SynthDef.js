@@ -50,7 +50,6 @@ var SynthDefTemplate = {
            }
        }
        return true
-      
     },
 
     collectConstants: function () {
@@ -257,15 +256,14 @@ var SynthDefTemplate = {
                     }
                     index.inputs.push([-1, maybe_const_index]) 
                 // if exits in synth nodes, place in inputs. Maybe switch to using maps for nodes. SPEEED
-                } else if (this.nodes.indexOf(this.nodes[i].inputs[j]) > -1) { 
+                } else if (this.nodes.indexOf(this.nodes[i].inputs[j]) > -1) {
                     index.inputs.push([this.nodes[i].inputs[j].synthIndex, 0]) // 0 is the output index, 0 if we only have mono outputs
                 }
             }
-            // TODO : arbitrary number of outputs
-            index.outputs.push("audio")
-            // for(let j = 0; j < def3.nodes[i].outputs.length; j++) {
-            //     index.outputs[i].push(def3.nodes[i].rate)
-            // }
+
+ 			for(let j = 0; j < 1; j++) {
+            	index.outputs.push(index["rate"])// Hard-coded to always be same as UGen's rate
+            }
             SynthDefFile.UGens.push(index)
         }
         SynthDefFile.numVariants = 0

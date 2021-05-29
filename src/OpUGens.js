@@ -50,59 +50,78 @@ const {UGen,genBasicUGenDef} = require('./UGen')
 // TRUNCATION = 21
 // UNSIGNED_SHIFT = 28
 // WRAP2 = 45
-
-// const Operator = {
-//     "ADDITION":0,
-//     "SUBTRACTION":1,
-//     "MULTIPLICATION":2,
-//     "/": 3, // integer division
-//     "/": 4, // float division. need to do some type checking. Syntax isn't enough
-// }
-
 const Operator = {
-    "ADD": { sindex: 0, op: (a,b) => {return a + b} },
-    "SUB": { sindex: 1, op: (a,b) => {return a - b} },
-    "MUL": { sindex: 2, op: (a,b) => {return a * b} },
-    "I_DIV":  { sindex: 3, op: (a,b) => {return Math.floor(a / b)} },
-    "F_DIV":  { sindex: 4, op: (a,b) => {return a / b} }
+	"+": { sindex: 0, op: (a,b) => {return a + b} },
+	"-": { sindex: 1, op: (a,b) => {return a - b} },
+	"*": { sindex: 2, op: (a,b) => {return a * b} },
+	"div": { sindex: 3, op: (a,b) => {return Math.floor(a / b)} },
+	"/": { sindex: 4, op: (a,b) => {return a / b} },
+	"%": { sindex: 5, op: (a,b) => {return a % b} },
+	"===": { sindex: 6, op: (a,b) => {return a === b} },
+	"!==": { sindex: 7, op: (a,b) => {return a !== b} },
+	"<": { sindex : 8, op: (a,b) => {return a < b} },
+	">": { sindex : 9, op: (a,b) => {return a > b} },
+	"<=": { sindex : 10, op: (a,b) => {return a <= b} },
+	">=": { sindex : 11, op: (a,b) => {return a >= b} },
+	"min": { sindex : 12, op: (a,b) => {return Math.min(a,b)} },
+	"max": { sindex : 13, op: (a,b) => {return Math.max(a,b)} },
+	"&": { sindex : 14, op: (a,b) => {return a & b} },
+	"|": { sindex : 15, op: (a,b) => {return a | b} },
+	"^": { sindex : 16, op: (a,b) => {return a ^ b} },
+	"pow": { sindex : 25, op: (a,b) => {return Math.pow(a,b)} },
+	"<<": { sindex : 26, op: (a,b) => {return a << b} },
+	">>": { sindex : 27, op: (a,b) => {return a >> b} },
+	">>>": { sindex : 28, op: (a,b) => {return a >>> b} },
 }
 
-var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen",  ["audio"], {lhs: undefined, rhs: undefined})
+var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen",  ["audio", "control"], {lhs: undefined, rhs: undefined})
 
 function BinOp(operator, lhs, rhs) {
     let is_const = false
     if(Number.isFinite(lhs) && Number.isFinite(rhs)) {
         is_const = true 
     }
-    let opkey
-    switch(operator) {
-        case "+":
-            opkey = "ADD"
-            break
-        case "-":
-            opkey = "SUB"
-            break
-        case "*":
-            opkey = "MUL"
-            break
-        case "div": // integer division
-            opkey = "I_DIV"
-            break
-        case "/":
-            opkey = "F_DIV"
-            break
-        default:
-            throw "ERROR: Invalid operation passed to BinOp."
-    }
-
+    let opkey = operator in Operator ? operator : null
+	if(!opkey) {
+		throw "ERROR: Invalid operator passed to BinOp"
+	}
     // Don't make a UGen, just a constant
     // This is okay because we collect our constants AFTER we build the UGen.
     // Sidenote: making a visualization of this program would be helpful.
     if(is_const) {
         return Operator[opkey].op(lhs,rhs)
     }
-    console.log("yeet", Operator[opkey])
-    var obj = BinaryOpUGen.ar(lhs, rhs)
+	// See if a BinOp is necessary...
+	if(operator === '*') {	
+		if(lhs === 0 || rhs === 0) {
+			console.log("EHHH BIG SHOTS HUUU")
+			return 0
+		}
+		if(lhs === 1) {
+			return rhs
+		}
+		if(rhs === 1) {
+			return lhs
+		}
+	}
+	if(operator === '+' || operator === '-') {
+		if(lhs === 0) {
+			return rhs
+		}
+		if(rhs === 0) {
+			return lhs
+		}
+	}
+
+	// Now we must determine the rate of the UGen
+	if(lhs.rate == "audio" || rhs.rate == "audio") {
+		var obj = BinaryOpUGen.ar(lhs,rhs)	
+	} else if (lhs.rate = "control" || rhs.rate == "control") {
+		var obj = BinaryOpUGen.kr(lhs,rhs)
+	} else {
+		throw "ERROR: BinaryOpUGen only supports audio and control rates."
+	}
+	// Set the special index corresponding to the operator.
     obj.specialIndex = Operator[opkey].sindex
 
     return obj

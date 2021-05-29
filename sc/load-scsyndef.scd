@@ -24,7 +24,21 @@ SynthDef(\def4, {
 }).writeDefFile("/Users/jkilgore/Desktop")
 )
 
-a = Synth(\def4, [freq:440, amp:0.01]);
+a = Synth(\def4, [freq:440, amp:0.2]);
+
+(
+SynthDef(\def5, {
+	var freq = \freq.kr(220)
+	var amp = \amp.kr(0.5)
+	var sig1 = SinOsc.ar(BinOp('*', freq, 1))
+	var sig2 = SinOsc.ar(440)
+	var scale_sig = BinOp('+', sig1, sig2)
+	scale_sig = BinOp('*',scale_sig, 0.5)
+	scale_sig = BinOp('*',scale_sig, amp)
+    Out.ar(0,scale_sig)
+})
+
+a = Synth(\def5, [freq:220, amp:0.5]);
 
 
 (
