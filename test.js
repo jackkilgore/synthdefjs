@@ -64,3 +64,4 @@ console.log(def_out_debug)
 for(let i = 0; i < def_out_debug.UGens.length; i++) {
 	console.log(def_out_debug.UGens[i])
 }
+console.log(def6.this)

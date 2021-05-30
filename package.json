@@ -23,8 +23,12 @@
   },
   "homepage": "https://github.com/jackkilgore/synthdefjs#readme",
   "dependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/plugin-transform-arrow-functions": "^7.13.0",
     "acorn": "^8.2.4",
-    "acorn-walk": "^8.1.0",
+    "acorn-walk": "^8.1.0"
+  },
+  "devDependencies": {
     "synthdef-json-decoder": "^1.0.2"
   }
 }

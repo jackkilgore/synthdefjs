@@ -1,15 +1,15 @@
-const {UGen} = require('./UGen')
+const {UGen, SinOsc, Out} = require('./UGen')
+const {BinOp, MulAdd} = require('./OpUGens')
 const {captureArguments, addIntToArray8, addFloat32ToArray8, addPascalStrToArray8, isArray} = require('./Utilities')
 const fs = require("fs");
-
 var SynthDefTemplate = {
     init: function(name, func_graph) {
         this.name = name;
         var funcGraph = func_graph;
         this.args = captureArguments(funcGraph)
         this.args_to_ctrl = [] 
+		this.BinOp = BinOp // Hack needed for operator overloading
 
-    
         this.nodes = []
         this.constants = []
         this.controls = []
@@ -38,8 +38,8 @@ var SynthDefTemplate = {
             args_flat.push(this.args[i].default)
             // console.log(this.args[i].default)
         }
-        //let args_to_ctrl = this.convertArgsToControls()
-        func_graph.apply(this,args_flat)
+		// TODO: Add optional flag to allow for Babel transpiling that supports operator overload
+		func_graph.apply(this,args_flat)
     },
 
     checkNodesInputs: function () {
