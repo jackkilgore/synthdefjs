@@ -3,4 +3,4 @@ Use Javascript to write SuperCollider SynthDefs
 
 System Diagram
 
-![](docs/synthdefjs-construction.svg)
+![](docs/synthdefjs-flow.svg)
