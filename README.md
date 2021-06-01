@@ -1,8 +1,8 @@
 # SynthDefJS
-[SynthDefJS](https://github.com/jackkilgore/synthdefjs) is a JavaScript library for defining audio graphs compliant with the [SuperCollider](https://github.com/supercollider/supercollider) audio server. It follows from SuperCollider's own [SynthDef construct](http://doc.sccode.org/Classes/SynthDef.html). The hope is that this can be a library that covers [SuperColliderJS's](https://crucialfelix.github.io/supercolliderjs/#/) lack of ability to define SynthDef's in JavaScript. At the very least, SynthDefJS will be a source of inspiration.
+[SynthDefJS](https://github.com/jackkilgore/synthdefjs) is a JavaScript library for defining audio graphs compliant with the [SuperCollider](https://github.com/supercollider/supercollider) audio server. It follows from SuperCollider's own [SynthDef construct](http://doc.sccode.org/Classes/SynthDef.html). The hope is that this can be a library that covers [SuperColliderJS's](https://crucialfelix.github.io/supercolliderjs/#/) inability to define SynthDef's in JavaScript.
 
 ## What is Happening?
-Concretely, SynthDefJS allows users to express audio graphs through canocial JavaScript function that containts instantiations of UGen objects. This function is then converted to a format that SuperCollider's audio server understands. See the [SupeCollider documentation](http://doc.sccode.org/) for more details.
+SynthDefJS allows users to express audio graphs through canocial JavaScript function that contains instantiations of [UGen objects](http://doc.sccode.org/Classes/UGen.html). This function is then converted to a format that SuperCollider's audio server understands. See the [SupeCollider documentation](http://doc.sccode.org/) for more details.
 
 A simple example:
 ```JavaScript
@@ -14,7 +14,9 @@ let def0 = SynthDef('def0', () => {
 }).writeToFile("/path/to/synth.scsyndef")
 ```
 
-An example that allows arguments that can dynamically change the SynthDef using a **named control** style:
+If someone would like to dynamically change aspects of a SynthDef after it has been sent to the audio server, SynthDefJS allows users to specify paramters using a **named control** style. A **named control** style is defined as follows `'parameter name'.rate(default_value)` where `rate = ar | kr | ir`.
+
+An example using the **named control** style:
 ```JavaScript
 // FM Synth -- Nice
 let sc = require("synthdefjs")
@@ -22,13 +24,13 @@ let sc = require("synthdefjs")
 let def1 = sc.SynthDef('def6', () => {
 	let mod = sc.SinOsc.ar('m_freq'.kr(1))
 	mod = sc.MulAdd(mod, 'width'.kr(10), 'c_freq'.kr(220))
-    let carrier = sc.SinOsc.ar(mod)
+	let carrier = sc.SinOsc.ar(mod)
 	carrier = sc.BinOp('*', carrier, 'amp'.kr(0.5))
-    sc.Out.ar(0, carrier)
+	sc.Out.ar(0, carrier)
 })
 ```
 
-System Diagram where inputs *name* and *JS Func Obj* correspond to the function signature of the above examples:
+System Diagram where inputs *name* and *JS Func Obj* correspond to the function signature `sc.SynthDef(.)`:
 
 ![](docs/synthdefjs-flow.svg)
 
@@ -55,7 +57,10 @@ SynthDefJS is making progress towards the above syntax by dynamically converting
 - acron (experimental)
 
 ## Hopes and Dreams
-- [ ] Topological sorting of the audio graph.
+- [ ] Topological sorting of the audio graph
 - [ ] Graph-aware optimizations of `BinOp(.)`
-- [ ] Dynamic, robust operator overloading.
-- [ ] Rewriting in TypeScript to better comply with [SuperColliderJS](https://crucialfelix.github.io/supercolliderjs/#/). 
+- [ ] `add(.)` method that sends an OSC blob to a running SuperCollider server
+- [ ] Dynamic, robust operator overloading
+- [ ] Multi-output UGen support
+- [ ] Implement all [SuperCollider UGens](http://doc.sccode.org/Guides/Tour_of_UGens.html)
+- [ ] Rewriting in TypeScript to better comply with [SuperColliderJS](https://crucialfelix.github.io/supercolliderjs/#/)
