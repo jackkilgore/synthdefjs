@@ -1,20 +1,19 @@
 # SynthDefJS
-[SynthDefJS](https://github.com/jackkilgore/synthdefjs) is a JavaScript library for defining audio graphs compliant with the [SuperCollider](https://github.com/supercollider/supercollider) audio server. It follows from SuperCollider's own [SynthDef construct](http://doc.sccode.org/Classes/SynthDef.html). The hope is that this can be a library that covers [SuperColliderJS's](https://crucialfelix.github.io/supercolliderjs/#/) inability to define SynthDef's in JavaScript.
+[SynthDefJS](https://github.com/jackkilgore/synthdefjs) is a JavaScript library for defining audio graphs compliant with the [SuperCollider](https://github.com/supercollider/supercollider) audio server. It follows from SuperCollider's own [SynthDef construct](http://doc.sccode.org/Classes/SynthDef.html) and aims to support all [UGens](http://doc.sccode.org/Classes/UGen.html) available to the SuperCollider language. The hope is that this can be a library that covers [SuperColliderJS's](https://crucialfelix.github.io/supercolliderjs/#/) inability to define SynthDefs in JavaScript.
 
-## What is Happening?
-SynthDefJS allows users to express audio graphs through canocial JavaScript function that contains instantiations of [UGen objects](http://doc.sccode.org/Classes/UGen.html). This function is then converted to a format that SuperCollider's audio server understands. See the [SupeCollider documentation](http://doc.sccode.org/) for more details.
+## What You Need to Know to Use SynthDefJS
 
-A simple example:
+SynthDefJS allows users to express audio graphs through canocial JavaScript function that contains instantiations and connections of [UGen objects](http://doc.sccode.org/Classes/UGen.html). All UGens follow the form: `UGenClass.rate(args...)` where the domain of `rate` is some element of the power set of `{ar, kr, ir}`. See the [SupeCollider documentation on UGens](http://doc.sccode.org/Guides/Tour_of_UGens.html) for examples. The way in which UGens are connected follows from the [SynthDefs in SuperCollider](http://doc.sccode.org/Guides/Tour_of_UGens.html). This is best seen through a simple example that describes a sine wave that is sent to an audio output.
 ```JavaScript
 let sc = require("synthdefjs")
 
 let def0 = SynthDef('def0', () => {
 	let sig = SinOsc.ar(220, 0)
     Out.ar(0, sig)
-}).writeToFile("/path/to/synth.scsyndef")
+}).writeToFile(
 ```
 
-If someone would like to dynamically change aspects of a SynthDef after it has been sent to the audio server, SynthDefJS allows users to specify paramters using a **named control** style. A **named control** style is defined as follows `'parameter name'.rate(default_value)` where `rate = ar | kr | ir`.
+If someone would like to dynamically change aspects of a `SynthDef` after it has been sent to the audio server, SynthDefJS allows users to specify paramters using a **named control** style. A **named control** style is defined as follows: `'parameter name'.rate(default_value)` where `rate = ar | kr | ir`.
 
 An example using the **named control** style:
 ```JavaScript
@@ -30,14 +29,25 @@ let def1 = sc.SynthDef('def6', () => {
 })
 ```
 
-System Diagram where inputs *name* and *JS Func Obj* correspond to the function signature `sc.SynthDef(.)`:
+Once defined, a `SynthDef` returns a data structure that can be easily formatted for use with a SuperCollider audio engine. A compliant format can be outputted to a file like so: 
+```Javascript
+sc.SynthDef('name', () => {...}).writeDefFile(/path/to/synth.scsyndef)
+```  
+Or it can be turned into a byte array that is ready to be send to a SuperCollider audio server:
+```Javascript
+our_synth = sc.SynthDef('name', () => {...}).outputBytes()
+```
 
-![](docs/synthdefjs-flow.svg)
+## What is Going On?
+
+`SynthDef(.)` works by executing its passed function (second argument), call it *JS Func Obj*. Whenever *JS Func Obj* encounters a **UGen** or **Named Control** it stores a signature of that object in some data structure. This data structure is then converted to a compact representation of an audio graph following the [SynthDef file format](http://doc.sccode.org/Reference/Synth-Definition-File-Format.html). This can be visualized like so:
+
+![](docs/synthdefjs-alg.svg)
 
 ## Experimental Features
 
 ### Using Babel to Hack Together Operator Overloading 
-Notice in the FM Synth example that we are forced to use `sc.MulAdd(.)` and `sc.BinOp(.)` when we want to perform operations on UGens. This is verbose and annoying; it would be more preferrable to just do something like this: 
+Notice that in the FM Synth example we are forced to use `sc.MulAdd(.)` and `sc.BinOp(.)` when we want to perform math operations on UGens. This is verbose and annoying; it would be more preferrable to just do something like this: 
 ```JavaScript
 // FM Synth using Operator Overloading -- Even Nicer
 let sc = require("synthdefjs")
