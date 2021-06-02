@@ -11,6 +11,8 @@ WORKING ON BABEL AND OP OVERLOADING
 - [ ] do rigorous testing of the babel op overloading
 - [ ] add operators for stuff like 'pow' 
 - [ ] make the anonymous function syntax work with babel
+- [ ] grab root node of AST ONLY once when parsing
+- [ ] make sure that your method for grabbing the function body is resiliant against different syntaxes
 
 30052021
 - [ ] look into babel resolvers for cleaner imports
