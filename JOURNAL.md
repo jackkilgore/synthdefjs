@@ -2,6 +2,16 @@
 SuperCollider SynthDef in Native Javascript
 
 ## TODO
+01062021
+WORKING ON BABEL AND OP OVERLOADING
+- [ ] elegant errors
+- [ ] stop duplication of inline fn definitions of nested fns.
+- [ ] implement a "keyword" at the top of all synthdef functions
+	- this will be an alternative to forcing users to prepend functions with SC_
+- [ ] do rigorous testing of the babel op overloading
+- [ ] add operators for stuff like 'pow' 
+- [ ] make the anonymous function syntax work with babel
+
 30052021
 - [ ] look into babel resolvers for cleaner imports
 - [ ] OK, I can manage to do operator overloading using Babel
@@ -9,7 +19,7 @@ SuperCollider SynthDef in Native Javascript
 	- even worse, this eval is inteneded to be done on an arbitrary function passed to SynthDef
 	- how bad of a security issue is this? 
 	- I'm thinking of making this operator overloading feature optional, due to the risks
-- [ ] Big problem with scoping and operator overloading with Babel 
+- [x] Big problem with scoping and operator overloading with Babel 
 	- we need to convert `sc.SinOsc.ar() * 0.5` to `sc.BinOp(sc.SinOsc.ar(), 0.5)` 
 	- how do we get the `sc`? This is an arbitrary value set using `const sc = require("include-synthdefjs")`
 	- Babel needs an object instance variable name that is set by a user arbitrarily. HOW?
@@ -18,7 +28,7 @@ SuperCollider SynthDef in Native Javascript
 		- I can use an `eval` *faceplam*
 			- this breaks modularity and makes user defined functions unusable, NEXT
 - [ ] another problem...babel cant parse this synatx: `let fun = function() {}`
-- [ ] another problem...arrow functions `this` are perma-binded to the parent scope...
+- [x] another problem...arrow functions `this` are perma-binded to the parent scope...
 	- can't dynamically allow a funcGraph to be aware of `this.BinOp`... sad
 Ok I have a first working version of using babel to dynamically conver operators to BinOps ONLY WITHIN a SynthDef context. This is how it works.  
 
