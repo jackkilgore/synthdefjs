@@ -9,7 +9,7 @@ SuperCollider SynthDef in Native Javascript
 
 01062021
 WORKING ON BABEL AND OP OVERLOADING
-- [ ] elegant errors
+- [x] elegant errors
 - [ ] stop duplication of inline fn definitions of nested fns.
 - [x] implement a "keyword" at the top of all synthdef functions
 	- this will be an alternative to forcing users to prepend functions with SC_

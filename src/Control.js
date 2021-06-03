@@ -1,7 +1,7 @@
 const {UGen,genBasicUGenDef} = require('./UGen')
 
-var Control = genBasicUGenDef("Control", ["audio", "control"])
-
+var Control = genBasicUGenDef("Control", ['scalar', 'control'])
+var AudioControl = genBasicUGenDef("AudioControl", ['audio'])
 
 // Named Controls. Forcing users to use this.
 var NamedControl = {
@@ -24,6 +24,18 @@ const createNamedControlKr = function(values) {
     return control
 }
 
+const createNamedControlIr = function(values) {
+    named_control = Object.create(NamedControl)
+    named_control.synthDef = UGen.synthDefContext
+    named_control.name = this.toString()
+    named_control.rate = 'scalar'
+    named_control.values = values
+    named_control.synthDef.addControl(named_control)
+    control = Control.ir()
+    control.specialIndex = named_control.controlIndex
+    return control
+}
+
 const createNamedControlAr = function(values) {
     named_control = Object.create(NamedControl)
     named_control.synthDef = UGen.synthDefContext
@@ -31,7 +43,7 @@ const createNamedControlAr = function(values) {
     named_control.rate = 'audio'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
-    control = Control.ar()
+    control = AudioControl.ar()
     // In the context of controls, specialIndex = its index in the control array.
     control.specialIndex = named_control.controlIndex
     return control
@@ -47,8 +59,10 @@ const createNamedControl = (rate, values) => {
     var control = undefined
     if(rate === 'control') {
         control = Control.kr()
-    } else if (rate === 'audio') {
-        control = Control.ar()
+    } else if (rate ==='scalar') {
+		control = Control.ir()
+	} else if (rate === 'audio') {
+        control = AudioControl.ar()
     } else {
         throw new Error("invalid rate")
     }
@@ -59,4 +73,5 @@ const createNamedControl = (rate, values) => {
 let createNamedControlKrTEST = createNamedControl.bind(null, 'control')
 
 Reflect.set(String.prototype, 'kr', createNamedControlKr)
+Reflect.set(String.prototype, 'ir', createNamedControlIr)
 Reflect.set(String.prototype, 'ar', createNamedControlAr)
