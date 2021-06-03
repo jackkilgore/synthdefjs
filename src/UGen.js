@@ -11,9 +11,7 @@ var UGen = {
         this.synthIndex = undefined
         this.rate = rate
         this.inputs = args
-        console.log("TODO: assert that args is an array in addToGraph")
-        console.log("Construcing UGen into SynthDef...")
-    
+        // TODO: assert that args is an array in addToGraph
         this.addToSynthDef()
     
     },
@@ -27,12 +25,12 @@ var UGen = {
         return this.checkValInputs()
     },
     checkValInputs: function() {
-        console.log(`Generic UGen checkInputs of ${this.name}`)
+        //console.log(`Generic UGen checkInputs of ${this.name}`)
         for(let i = 0; i < this.inputs.length; i++) {
             if(!this.inputs[i].isValidUGenInput && !Number.isFinite(this.inputs[i])
                 && !isArray(this.inputs[i])) 
             {
-                return false
+                throw new Error(`Generic UGen checkInputs of ${this.name} failed.`)
             }
         }
         return true
@@ -65,29 +63,6 @@ var UGen = {
 function genBasicUGenDef(name, rates, sign_args) {
     var output = Object.create(UGen)
 
-    let test = (rate, ...inst_args) => {
-        // Insert default arguments if necessary.
-        let arg_count = 0
-        for (let key in sign_args) {
-            if(typeof inst_args[arg_count]  === 'undefined') {
-                inst_args[arg_count] = sign_args[key]
-            }
-            arg_count += 1
-        }
-
-        // Check if we have a valid signature
-        if(inst_args.length !== arg_count) {
-            console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
-            throw "ERROR: Invalid function signature"
-        }
-        
-        // Create object and add to the graph.
-        obj = Object.create(output)
-        obj.name = name
-        obj.addToGraph(rate,inst_args)
-        return obj
-    }
-
     if(rates.indexOf("audio") !== -1) {
         output.ar = (...inst_args) => {
             // Insert default arguments if necessary.
@@ -101,8 +76,9 @@ function genBasicUGenDef(name, rates, sign_args) {
 
         // Check if we have a valid signature
         if(inst_args.length !== arg_count) {
-            console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
-            throw "ERROR: Invalid function signature"
+			let invalid_signature_message = 
+				`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+            throw new Error(invalid_signature_message)
         }
         
         // Create object and add to the graph.
@@ -126,8 +102,9 @@ function genBasicUGenDef(name, rates, sign_args) {
 
             // Check if we have a valid signature
             if(inst_args.length !== arg_count) {
-                console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
-                throw "ERROR: Invalid function signature"
+				let invalid_signature_message = 
+					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+				throw new Error(invalid_signature_message)
             }
             
             // Create object and add to the graph.
@@ -151,8 +128,9 @@ function genBasicUGenDef(name, rates, sign_args) {
 
             // Check if we have a valid signature
             if(inst_args.length !== arg_count) {
-                console.error(`INVALID input: function has signature (${Object.keys(sign_args)})`)
-                throw "ERROR: Invalid function signature"
+				let invalid_signature_message = 
+					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+				throw new Error(invalid_signature_message)
             }
             
             // Create object and add to the graph.
@@ -172,18 +150,15 @@ var Out = genBasicUGenDef("Out", ["audio", "control"], {bus: undefined, signals:
 
 // Overload checkInputs for Out
 Out.checkInputs = function() {
-    console.log("Outs Check Inputs...")
     if(this.rate === "audio") {
         for(let i = 0; i < this.inputs[1]; i++) {
-            if(this.inputs[i].rate != "audio") {
-                console.log("Inputs to Out not at the audio rate.")
-                return false
+            if(this.inputs[i].rate != "audio") {	
+                throw new Error(`Out UGen is at the audio rate but it's inputs are not.`)
             }
         }
     }
     if(this.inputs.length < 2) {
-        console.log("Out does not have enough inputs.")
-        return false
+		throw new Error("Out does not have enough inputs (at least 2).")
     }
 
     return this.checkValInputs()

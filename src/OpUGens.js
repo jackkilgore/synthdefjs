@@ -62,7 +62,7 @@ function BinOp(operator, lhs, rhs) {
     }
     let opkey = operator in Operator ? operator : null
 	if(!opkey) {
-		throw "ERROR: Invalid operator passed to BinOp"
+		throw new Error("Invalid operator passed to BinOp")
 	}
     // Don't make a UGen, just a constant
     // This is okay because we collect our constants AFTER we build the UGen.
@@ -73,7 +73,6 @@ function BinOp(operator, lhs, rhs) {
 	// See if a BinOp is necessary...
 	if(operator === '*') {	
 		if(lhs === 0 || rhs === 0) {
-			console.log("EHHH BIG SHOTS HUUU")
 			return 0
 		}
 		if(lhs === 1) {
@@ -98,7 +97,7 @@ function BinOp(operator, lhs, rhs) {
 	} else if (lhs.rate = "control" || rhs.rate == "control") {
 		var obj = BinaryOpUGen.kr(lhs,rhs)
 	} else {
-		throw "ERROR: BinaryOpUGen only supports audio and control rates."
+		throw new Error("BinaryOpUGen only supports audio and control rates.")
 	}
 	// Set the special index corresponding to the operator.
     obj.specialIndex = Operator[opkey].sindex
@@ -129,11 +128,11 @@ function MulAdd(input, mul, add) {
 		var obj = MulAddUGen.ar(input, mul,add)
 	} else if(input.rate === "control"){
 		if(add.rate === "audio" || mul.rat === "audio") {
-			throw "ERROR: Input of MulAdd is at a slower rate than 'mul' and 'add'"
+			throw new Error("Input of MulAdd is at a slower rate than 'mul' and 'add'")
 		}
 		var obj = MulAddUGen.kr(input,mul,add)
 	} else {
-		throw "Error: MulAdd's input has an invalid rate"
+		throw new Error("MulAdd's input has an invalid rate")
 	}
 	return obj
 }

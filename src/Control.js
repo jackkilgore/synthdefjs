@@ -50,7 +50,7 @@ const createNamedControl = (rate, values) => {
     } else if (rate === 'audio') {
         control = Control.ar()
     } else {
-        throw "ERROR: invalid rate"
+        throw new Error("invalid rate")
     }
     control.specialIndex = named_control.controlIndex
     return control

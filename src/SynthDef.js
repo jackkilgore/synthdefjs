@@ -15,16 +15,15 @@ var SynthDefTemplate = {
         this.controls = []
         
         this.build(funcGraph)
-        console.log("Number of nodes:", this.nodes.length)
         if(!this.checkNodesInputs()) {
-            return
+			throw new Error("Invalid input to some UGen in the SynthDef")
        }
         this.collectConstants()
 
+        console.log(`Successfully built SynthDef Graph. Number of nodes: ${this.nodes.length}.`)
     },
 
     addNode: function(node) {
-        console.log("Adding node to graph...")
         node.synthIndex = this.nodes.length;
         this.nodes.push(node)
     },
@@ -32,11 +31,9 @@ var SynthDefTemplate = {
     build: function (func_graph) {
         this.nodes = []
         UGen.synthDefContext = this
-        console.log("SynthDef setting UGen context")
         let args_flat = []
         for(let i = 0; i < this.args.length; i++) {
             args_flat.push(this.args[i].default)
-            // console.log(this.args[i].default)
         }
 		// TODO: Add optional flag to allow for Babel transpiling that supports operator overload
 		func_graph.apply(this,args_flat)
@@ -45,7 +42,6 @@ var SynthDefTemplate = {
     checkNodesInputs: function () {
        for(let i = 0; i < this.nodes.length; i++) {
            if(!this.nodes[i].checkInputs()) {
-               console.log("ERROR: Invalid Inputs to some UGen.")
                return false
            }
        }
@@ -67,11 +63,11 @@ var SynthDefTemplate = {
 
     addControl: function (control) {
         if(!control.hasOwnProperty('name') || !control.hasOwnProperty('values')) {
-            throw 'ERROR: Control object to be added does not have a name or a values property!'
+            throw new Error("Control object to be added does not have a name or a values property!")
         }
         if(control.rate !== "control" && control.rate !== "audio" &&
             control.rate !== "scalar" && control.rate !== "trigger") {
-            throw 'ERROR: Invalid control rate!'
+            throw new Error("Invalid rate for Control UGen.")
         }
         control.controlIndex = this.controls.length
         this.controls.push(control)
@@ -83,8 +79,6 @@ var SynthDefTemplate = {
 
 
         let byte_def = this.writeToBytes()
-        //console.log(float32ToInt32(0))
-        //let byte_def = new Uint8Array(3)
         // Add header
         const HEADER_SIZE = 10
         let header = new Uint8Array(10)
@@ -99,9 +93,6 @@ var SynthDefTemplate = {
         // Number of SynthDefs: 1
         const NUM_SYNTH_DEFS = 1 
         addIntToArray8(header, 8, NUM_SYNTH_DEFS, 16)
-
-        console.log(header)
-        console.log(byte_def)
 
         stream.on('error', console.error);
         stream.write(header)
@@ -141,7 +132,7 @@ var SynthDefTemplate = {
         for(let i = 0; i < this.controls.length; i++) {
             // TODO: Only allows one value for now
             if(isArray(this.controls[i].values)) {
-                throw "ERROR: writing to bytes doesn't support controls with an array of values."
+                throw new Error("Writing to bytes doesn't support Controls with an array of values.")
             } else {
                 index = addFloat32ToArray8(output, index, this.controls[i].values) 
             }
@@ -172,7 +163,7 @@ var SynthDefTemplate = {
             } else if (rate_str === "audio") {
                 rate_int = 2
             } else {
-                throw "ERROR: UGen has invalid rate!"
+                throw new Error("UGen has invalid rate.")
             }
             index = addIntToArray8(output, index, rate_int ,8) 
 
@@ -192,7 +183,7 @@ var SynthDefTemplate = {
                 if( Number.isFinite(this.nodes[i].inputs[j])) {
                     let maybe_const_index = this.constants.indexOf(this.nodes[i].inputs[j])
                     if(maybe_const_index === -1) {
-                        throw "ERROR: Constant does not exist in the synthdef's constant set."
+                        throw new Error("Constant does not exist in the synthdef's constant set.")
                     }
                     index = addIntToArray8(output, index, -1 ,32)
                     index = addIntToArray8(output, index, maybe_const_index ,32)
@@ -252,7 +243,7 @@ var SynthDefTemplate = {
                 if( Number.isFinite(this.nodes[i].inputs[j])) {
                     let maybe_const_index = this.constants.indexOf(this.nodes[i].inputs[j])
                     if(maybe_const_index === -1) {
-                        throw "ERROR: Constant does not exist in the synthdef's constant set."
+                        throw new Error("Constant does not exist in the synthdef's constant set.")
                     }
                     index.inputs.push([-1, maybe_const_index]) 
                 // if exits in synth nodes, place in inputs. Maybe switch to using maps for nodes. SPEEED
@@ -276,7 +267,6 @@ var SynthDefTemplate = {
         let arg_names = []
         for(let i = 0; i < this.args.length; i++) {
             arg_names.push(this.args[i].name)
-            //args_to_ctrl.push(Control.kr(this.args.name))
         }
         return args_to_ctrl
     },

@@ -5,6 +5,7 @@ SuperCollider SynthDef in Native Javascript
 02062021 MORE BABEL
 - [ ] make `+=` type of operations work
 - [ ] custom synatx for pow using `**` ?
+- [ ] Add 'AudioControl'
 
 01062021
 WORKING ON BABEL AND OP OVERLOADING

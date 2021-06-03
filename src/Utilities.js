@@ -3,7 +3,7 @@ const walk = require("acorn-walk")
 
 function captureArguments(func) {
     if (typeof func !== 'function') {
-        throw 'captureArguments input is not a function!'
+        throw new Error('captureArguments input is not a function.')
     }
     var ast = acorn.parse( "(" + func.toString() + ")", {ecmaVersion: 2020} )
     var params = []
@@ -22,12 +22,12 @@ function captureArguments(func) {
 							return {"name":param.left.name, "default":param.right.value}
 						} 
                         else if (param.right.type === 'ArrayExpression' ) {
-                            throw 'Default is not a literal!';
+                            throw new Error('Default is not a literal.')
                             // annoying to deal with right now, fix later
                             //return {"name":param.left.name, "default":param.right.elements}
                         }
                         else {
-							throw 'Default is not a literal!';
+							throw new Error('Default is not a literal.')
 						}
 					}
                 })
@@ -56,12 +56,12 @@ function isUint8Array(obj) {
 
 function addPascalStrToArray8(array8, index, string) {
     if(!isUint8Array(array8)) {
-        throw "ERROR: buffer inputted into 'insertPascalString' is not a Uint8Array"
+        throw new Error("Buffer inputted into 'insertPascalString' is not a Uint8Array")
     }
     // Size of string plus its size
     let str_size = string.length
     if(index + str_size + 1 >= array8.length || str_size > 255) {
-        throw "ERROR: string too large to be inserted as a pascal string into array8!"
+        throw new Error("String too large to be inserted as a pascal string into a single byte.")
     }
     array8[index] = str_size
     index += 1
@@ -78,10 +78,10 @@ function addPascalStrToArray8(array8, index, string) {
 // TODO add check to see if `num` is within the range of the inputted bits...
 function addIntToArray8(array8, index, num, bits) {
     if(bits !== 8 && bits !== 16 && bits !== 32 && bits !== 64) {
-        throw `ERROR: num of bits inputted: ${bits}. Mut be 8, 16, 32, or 64.`
+        throw new Error(`num of bits inputted: ${bits}. Mut be 8, 16, 32, or 64.`)
     }
     if(index + bits / 8 > array8.length) {
-        throw `ERROR: int${bits} too large to be inserted into array8!`
+        throw new Error(`int${bits} too large to be inserted into Uint8array!`)
     }
 
     let hex_num 
