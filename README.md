@@ -60,6 +60,8 @@ let def2 = sc.SynthDef('def2', () => {
 ```
 SynthDefJS is making progress towards the above syntax by dynamically converting arithmetic operations within a SynthDef function into BinOps or BinOp variants using Babel. Unfortunately, this is fragile and poses security risks (it makes the use of `eval(.)` unavoidable). Thus, this is an experimental feature that will continue to improve and will be made optional for any users of the library. 
 
+For details see `experimental/SynthDefBabel.js`
+
 ## Dependencies
 - ECMAScript6
 - babel/core7 (experimental)
