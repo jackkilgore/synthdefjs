@@ -37,10 +37,7 @@ fn1 = () => {
 
 // TODO: += typa stuff
 const operatorOverload = {
-	BinaryExpression(path, state) {
-		if(!state.usesynthdefjs) {
-			return
-		}
+	BinaryExpression(path) {
 
 		// If both sides are numbers, no need to return.
 		if (babel.types.isNumericLiteral(path.node.left) && babel.types.isNumericLiteral(path.node.right)) {
@@ -62,27 +59,24 @@ const operatorOverload = {
 	CallExpression(path, state) {
 		// Forces a keyword pre-appened to SC function for now...
 		if(path.node.callee.name) {
-			if(!state.usesynthdefjs) {
-				return
-			}
 			
 			// Resurively replace operators with BinOPs in function definition
 			let fn = eval(path.node.callee.name) // oh my, wtf this is disgusting
 			let fn_code = fn.toString() // idea, require a keyword at the top of every function
-			const fn_out = babel.transformSync(fn_code, { 
-				ast: true,
-				plugins: [
-					"@babel/plugin-transform-arrow-functions",
-					operatorOverloadEntry,
-				]
-			})
-			
-			// Stupid hack to check if a parse failed because no keyword.
-			let is_error_present = fn_out.ast.program.body[0].expression.body.directives.some((directive) => {
-				if(directive.value === "use synthdefjs FAIL") return true
-				return false
-			})
-			if(is_error_present) return 
+			let fn_out
+			try{
+				fn_out = babel.transformSync(fn_code, { 
+					ast: true,
+					plugins: [
+						"@babel/plugin-transform-arrow-functions",
+						operatorOverloadEntry,
+					]
+				})
+			}
+			catch (e) {
+				// No synthdefjs header found in the above function
+				return 
+			}
 
 			// To make `this` work, we must apply a new this context to every nested function.	
 			// Make callee
@@ -115,7 +109,7 @@ const operatorOverload = {
 			} else if(fn_out.ast.program.body[0].type === 'ExpressionStatement') {
 				new_fn = fn_out.ast.program.body[0].expression
 			} else {
-				throw "ERROR: invalid nested function in SynthDef"
+				throw new Error("invalid nested function in SynthDef")
 			}
 			
 			// Append a new function definition to the 'header' of the function.
@@ -131,25 +125,28 @@ const operatorOverload = {
 	}
 }
 
-// Courtesy of the wicked smart Charlie Roberts:
+function NoSynthDefJSHeader(message) {
+	this.message = message
+	this.name = 'NoSynthDefJSHeader'
+}
+// Modified, Original courtesy of the wicked smart Charlie Roberts:
 // https://github.com/charlieroberts/jsdsp
 function operatorOverloadEntry() {
 	return {
 	visitor: {
 		BlockStatement(path, state) {
         	// off by default
-        	state.usesynthdefjs = false
+        	let usesynthdefjs = false
 
         	if( path.node.directives !== undefined ) {
           		path.node.directives.forEach( directive => {
             		if( directive.value.value === 'use synthdefjs' ) {
-              			state.usesynthdefjs = true
+              			usesynthdefjs = true
             		}
           		})
        		}
-			if(!state.usesynthdefjs) {
-				path.node.directives.push(babel.types.directiveLiteral('use synthdefjs FAIL'))
-				return
+			if(!usesynthdefjs) {
+				throw new NoSynthDefJSHeader('use synthdefjs FAIL')
 			}
 
 			state.fn = path.node
