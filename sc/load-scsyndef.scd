@@ -40,11 +40,15 @@ SynthDef(\def5, {
 
 a = Synth(\def5, [freq:880, amp:0.5]);
 
+a = Synth(\def6)
 
 a = Synth(\def6, [c_freq:220, m_freq:1, width:10, amp:0.5]);
 
-a.set(\c_freq, 220, \m_freq, 40, \width, 100, \amp, 0.5)
+a.set(\c_freq, 200, \m_freq, 50, \width, 80, \amp, 0.5)
 a.free
+
+
+a = Synth(\defmulti)
 
 (
 c = SynthDef(\def1,{

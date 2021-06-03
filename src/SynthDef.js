@@ -106,7 +106,7 @@ var SynthDefTemplate = {
     numberOfBytes: function() {
     },
 
-    writeToBytes: function() {        
+    writeToBytes: function() {
         // We need to specify the size beforehand. We can do some analysis on `def`.
         // Before we go any further, 
         //  let us make sure we like the format returned by `readableSynthDefFile()`

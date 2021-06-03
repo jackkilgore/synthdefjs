@@ -1,4 +1,4 @@
-const {UGen,genBasicUGenDef} = require('./UGen')
+const {UGen,genBasicUGenDef, actionOnUGenMaybeMulti} = require('./UGen')
 
 // Reference: https://github.com/josiah-wolf-oberholtzer/supriya/blob/57fa3459f3c00dd8a0f35ca87abe333bc1c0190f/supriya/enums.py#L20
 // ABSOLUTE_DIFFERENCE = 38  # |a - b|
@@ -56,6 +56,11 @@ const Operator = {
 var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen",  ["audio", "control"], {lhs: undefined, rhs: undefined})
 
 function BinOp(operator, lhs, rhs) {
+	return actionOnUGenMaybeMulti(BinOpHelper, [operator,lhs,rhs])	
+}
+
+function BinOpHelper(operator, lhs, rhs) {
+
     let is_const = false
     if(Number.isFinite(lhs) && Number.isFinite(rhs)) {
         is_const = true 
@@ -90,10 +95,10 @@ function BinOp(operator, lhs, rhs) {
 			return lhs
 		}
 	}
-
+	
 	// Now we must determine the rate of the UGen
 	if(lhs.rate == "audio" || rhs.rate == "audio") {
-		var obj = BinaryOpUGen.ar(lhs,rhs)	
+		var obj = BinaryOpUGen.ar(lhs,rhs) // Create object and add to graph.	
 	} else if (lhs.rate = "control" || rhs.rate == "control") {
 		var obj = BinaryOpUGen.kr(lhs,rhs)
 	} else {
@@ -108,6 +113,10 @@ function BinOp(operator, lhs, rhs) {
 var MulAddUGen = genBasicUGenDef("MulAdd",  ["audio", "control"], {input: undefined, mul: 1.0, add: 0.0})
 
 function MulAdd(input, mul, add) {
+	return actionOnUGenMaybeMulti(MulAddHelper, [input,mul,add])	
+}
+
+function MulAddHelper(input, mul, add) {
 	if(mul === 0) {
 		return add
 	}

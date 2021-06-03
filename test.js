@@ -26,11 +26,13 @@ let sc = require("./src/include-synthdef")
 //     sc.Out.ar(0,scale_sig)
 // }).writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
+
 let def4 = sc.SynthDef('def4', () => {
     let sig = sc.SinOsc.ar('freq'.kr(220))
     let scale_sig = sc.BinOp('*',sig, 'amp'.kr(0.5))
     sc.Out.ar(0,scale_sig)
 })
+
 
 let def5 = sc.SynthDef('def5', () => {
 	let freq = 'freq'.kr(220)
@@ -49,11 +51,17 @@ let def6 = sc.SynthDef('def6', () => {
 	let m_freq = 'm_freq'.kr(1)
 	let width = 'width'.kr(10)
 	let amp = 'amp'.kr(0.5)
-	let mod = sc.SinOsc.ar(m_freq)
+	let mod = sc.SinOsc.ar(Array(4).fill(m_freq))
 	mod = sc.MulAdd(mod, width, c_freq)
     let carrier = sc.SinOsc.ar(mod)
 	carrier = sc.MulAdd(carrier,amp, 0.0) // Should reduce to a BinOp
     sc.Out.ar(0,carrier)
+})
+
+
+let def7 = sc.SynthDef('defmulti', () => {
+	let sig = sc.SinOsc.ar(Array(2).fill(440)) // Basic multi channel expansion. breaks in most cases
+	sc.Out.ar(0,sig)
 })
 
 def_out = def6
@@ -65,10 +73,4 @@ console.log(def_out_debug)
 for(let i = 0; i < def_out_debug.UGens.length; i++) {
 	console.log(def_out_debug.UGens[i])
 }
-console.log(def6.this)
 */
-
-let defmulti = sc.SynthDef('defmulti', () => {
-	let sig = sc.SinOsc.ar(Array(2).fill(440)) // Basic multi channel expansion. breaks in most cases
-	sc.Out.ar(0,sig)
-})
