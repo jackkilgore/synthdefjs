@@ -45,13 +45,13 @@ let def5 = sc.SynthDef('def5', () => {
     sc.Out.ar(0,scale_sig)
 })
 
-// FM Synth -- Nice
+// Stereo FM Synth -- Nice
 let def6 = sc.SynthDef('def6', () => {
 	let c_freq = 'c_freq'.kr(220)
 	let m_freq = 'm_freq'.kr(1)
 	let width = 'width'.kr(10)
 	let amp = 'amp'.kr(0.5)
-	let mod = sc.SinOsc.ar(Array(4).fill(m_freq))
+	let mod = sc.SinOsc.ar(Array(4).fill(m_freq)) // stereo propgates through the entire synth
 	mod = sc.MulAdd(mod, width, c_freq)
     let carrier = sc.SinOsc.ar(mod)
 	carrier = sc.MulAdd(carrier,amp, 0.0) // Should reduce to a BinOp

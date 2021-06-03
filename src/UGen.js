@@ -4,6 +4,7 @@ const {isArray} = require('./Utilities')
 var UGen = {
     synthDefContext: undefined, // Will be defined when a SynthDef is initialized.
     isValidUGenInput: true, // We need to somehow define this value for all objects
+	isUGen: true,
     specialIndex: 0,
     name: "UGen",
     addToGraph: function(rate, args) {
@@ -12,7 +13,6 @@ var UGen = {
         this.synthIndex = undefined
         this.rate = rate
         this.inputs = args
-        // TODO: assert that args do not have nested array unless specified.
         this.addToSynthDef()
     
     },
@@ -26,7 +26,6 @@ var UGen = {
         return this.checkValInputs()
     },
     checkValInputs: function() {
-        //console.log(`Generic UGen checkInputs of ${this.name}`)
         for(let i = 0; i < this.inputs.length; i++) {
             if(!this.inputs[i].isValidUGenInput && !Number.isFinite(this.inputs[i])
                 && !isArray(this.inputs[i])) 
@@ -39,8 +38,11 @@ var UGen = {
 }
 
 // PARENT MUST DERIVE FROM THE UGEN OBJECT
-const createUGen = (parent, name, rate, ...args) => {
-	ugen = Object.create(parent)
+const createUGen = (ugen_type, name, rate, ...args) => {
+	if(!ugen_type.isUGen) {
+		throw new Error(`Attempted to create a UGen out of an object that is not a UGen`)
+	}
+	ugen = Object.create(ugen_type)
 	ugen.name = name
 	if(args === undefined) {
 		ugen.addToGraph(rate,[])

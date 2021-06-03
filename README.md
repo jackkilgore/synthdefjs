@@ -29,6 +29,20 @@ let def1 = sc.SynthDef('def6', () => {
 })
 ```
 
+We can also perform multi-channel expansion by passing arrays of arguments to UGens. Here is the previous mono FM example turned into a stereo FM:
+``` Javascript
+// Stereo FM Synth -- Nicee
+let sc = require("synthdefjs")
+
+let def1 = sc.SynthDef('def6', () => {
+	let mod = sc.SinOsc.ar('m_freq'.kr(1))
+	mod = sc.MulAdd(mod, 'width'.kr(10), 'c_freq'.kr(220))
+	let carrier = sc.SinOsc.ar(Array(2).fill(mod)) // Duplicate 'mod' param propgate it through the synth.
+	carrier = sc.BinOp('*', carrier, 'amp'.kr(0.5)) 
+	sc.Out.ar(0, carrier)
+})
+```
+
 Once defined, a `SynthDef` returns a data structure that can be easily formatted for use with a SuperCollider audio engine. A compliant format can be outputted to a file like so: 
 ```Javascript
 sc.SynthDef('name', () => {...}).writeDefFile(/path/to/synth.scsyndef)
