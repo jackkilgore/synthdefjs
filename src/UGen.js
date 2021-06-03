@@ -7,11 +7,12 @@ var UGen = {
     specialIndex: 0,
     name: "UGen",
     addToGraph: function(rate, args) {
+
         this.synthDef = undefined
         this.synthIndex = undefined
         this.rate = rate
         this.inputs = args
-        // TODO: assert that args is an array in addToGraph
+        // TODO: assert that args do not have nested array unless specified.
         this.addToSynthDef()
     
     },
@@ -35,6 +36,43 @@ var UGen = {
         }
         return true
     }
+}
+
+// PARENT MUST DERIVE FROM THE UGEN OBJECT
+function createUGen(parent, name, rate, args) {
+	ugen = Object.create(parent)
+	ugen.name = name
+	ugen.addToGraph(rate,args)
+	return ugen
+}
+function createUGensMaybeMulti(parent, name, rate, args) {
+	// figure out multichannel expansion
+	// Should probably be in a new function
+	// Maybe have a fn not aware of UGen, so it can figure out how many UGens to make
+	let num_ugens = 0
+	for (let i = 0; i < args.length; i++) {
+		if(isArray(args[i])) {
+			num_ugens = Math.max(args[i].length, num_ugens)	
+		}
+	}
+	// No array of arguments found. return one UGen
+	if(num_ugens === 0) {
+		return createUGen(parent,name,rate,args)
+	}
+	
+	let multi_ugens = new Array(num_ugens)
+	for( let i = 0; i < num_ugens; i++) {
+		let temp_args = new Array(args.length)
+		for (let j = 0; j < args.length; j++) {
+			if (isArray(args[j])) {
+				temp_args[j] = args[j][i % args[j].length]
+			} else {
+				temp_args[j] = args[j]
+			}
+		}
+		multi_ugens[i] = createUGen(parent,name,rate,temp_args) 	
+	}
+	return multi_ugens
 }
 
 // The goal: disgusting JS
@@ -80,12 +118,14 @@ function genBasicUGenDef(name, rates, sign_args) {
 				`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
             throw new Error(invalid_signature_message)
         }
-        
+    	return createUGensMaybeMulti(output,name,'audio',inst_args)
         // Create object and add to the graph.
+		/*
         obj = Object.create(output)
         obj.name = name
         obj.addToGraph("audio",inst_args)
         return obj
+		*/
         }
     }
 
@@ -107,11 +147,7 @@ function genBasicUGenDef(name, rates, sign_args) {
 				throw new Error(invalid_signature_message)
             }
             
-            // Create object and add to the graph.
-            obj = Object.create(output)
-            obj.name = name
-            obj.addToGraph("control",inst_args)
-            return obj
+    		return createUGensMaybeMulti(output,name,'control',inst_args)
         }
     }
 
@@ -133,11 +169,7 @@ function genBasicUGenDef(name, rates, sign_args) {
 				throw new Error(invalid_signature_message)
             }
             
-            // Create object and add to the graph.
-            obj = Object.create(output)
-            obj.name = name
-            obj.addToGraph("scalar",inst_args)
-            return obj
+    		return createUGensMaybeMulti(output,name,'scalar',inst_args)
         }
     }
     
@@ -146,8 +178,14 @@ function genBasicUGenDef(name, rates, sign_args) {
 
 var SinOsc = genBasicUGenDef("SinOsc", ["audio", "control"], {freq: 440.0, phase: 0.0})
 
-var Out = genBasicUGenDef("Out", ["audio", "control"], {bus: undefined, signals: undefined})
-
+// Out is a special case since must destructure the signals array
+var Out = Object.create(UGen)
+Out.ar = (bus, signals) => {	
+	return createUGensMaybeMulti(Out,"Out",'audio',[bus].concat(signals))
+}
+Out.kr = (bus, signals) => {	
+	return createUGensMaybeMulti(Out,"Out",'audio',[bus].concat(signals))
+}
 // Overload checkInputs for Out
 Out.checkInputs = function() {
     if(this.rate === "audio") {

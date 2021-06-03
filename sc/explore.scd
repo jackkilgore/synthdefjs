@@ -97,3 +97,6 @@ b = SynthDef(\test, { | freq = 200, amp = 0.5 |
 )
 
 Synth(\test,[amp:0.1])
+
+
+SinOsc.ar([220,120]).postln

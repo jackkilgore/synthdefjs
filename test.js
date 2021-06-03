@@ -59,9 +59,16 @@ let def6 = sc.SynthDef('def6', () => {
 def_out = def6
 def_out.writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")
 
+/*
 let def_out_debug = def_out.readableSynthDefFile()
 console.log(def_out_debug)
 for(let i = 0; i < def_out_debug.UGens.length; i++) {
 	console.log(def_out_debug.UGens[i])
 }
 console.log(def6.this)
+*/
+
+let defmulti = sc.SynthDef('defmulti', () => {
+	let sig = sc.SinOsc.ar(Array(2).fill(440)) // Basic multi channel expansion. breaks in most cases
+	sc.Out.ar(0,sig)
+})
