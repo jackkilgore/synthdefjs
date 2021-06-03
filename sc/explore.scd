@@ -84,4 +84,16 @@ d.specialIndex
 
 
 
+//
 
+(
+f = {|a b| a * b};
+b = SynthDef(\test, { | freq = 200, amp = 0.5 |
+
+	var sig = f.(SinOsc.ar(freq), amp);
+	Out.ar(0, sig)
+
+}).add()
+)
+
+Synth(\test,[amp:0.1])

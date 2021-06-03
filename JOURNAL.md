@@ -2,16 +2,20 @@
 SuperCollider SynthDef in Native Javascript
 
 ## TODO
+02062021 MORE BABEL
+- [ ] make `+=` type of operations work
+- [ ] custom synatx for pow using `**` ?
+
 01062021
 WORKING ON BABEL AND OP OVERLOADING
 - [ ] elegant errors
 - [ ] stop duplication of inline fn definitions of nested fns.
-- [ ] implement a "keyword" at the top of all synthdef functions
+- [x] implement a "keyword" at the top of all synthdef functions
 	- this will be an alternative to forcing users to prepend functions with SC_
 - [ ] do rigorous testing of the babel op overloading
 - [ ] add operators for stuff like 'pow' 
 - [ ] make the anonymous function syntax work with babel
-- [ ] grab root node of AST ONLY once when parsing
+- [x] grab root node of AST ONLY once when parsing
 - [ ] make sure that your method for grabbing the function body is resiliant against different syntaxes
 
 30052021
