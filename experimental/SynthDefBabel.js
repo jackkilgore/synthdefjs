@@ -118,7 +118,6 @@ const operatorOverload = {
 				throw "ERROR: invalid nested function in SynthDef"
 			}
 			
-			
 			// Append a new function definition to the 'header' of the function.
 			const variable_decl = babel.types.variableDeclaration('const',
 				[babel.types.variableDeclarator(callee_id,new_fn)])
