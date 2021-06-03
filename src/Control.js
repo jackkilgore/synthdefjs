@@ -1,4 +1,4 @@
-const {UGen,genBasicUGenDef} = require('./UGen')
+const {UGen,genBasicUGenDef, actionOnUGenMaybeMulti} = require('./UGen')
 
 var Control = genBasicUGenDef("Control", ['scalar', 'control'])
 var AudioControl = genBasicUGenDef("AudioControl", ['audio'])
@@ -12,7 +12,13 @@ var NamedControl = {
     controlIndex: undefined,
 }
 
+// It gets instantiated correctly, but doesn't work as a parameter
+// We need multi-output UGens
 const createNamedControlKr = function(values) {
+	return actionOnUGenMaybeMulti(createNamedControlKrHelper,[values])
+}
+
+const createNamedControlKrHelper = function(values) {
     named_control = Object.create(NamedControl)
     named_control.synthDef = UGen.synthDefContext
     named_control.name = this.toString()

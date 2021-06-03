@@ -100,3 +100,22 @@ Synth(\test,[amp:0.1])
 
 
 SinOsc.ar([220,120]).postln
+
+Pan2.ar(120)
+DC.ar(2)
+
+OutputProxy
+
+
+(
+f = {|a b| a * b};
+b = SynthDef(\test, { | amp = 0.5 |
+	var freqs = \freqs.kr([220,440]);
+	var sig = f.(SinOsc.ar(freqs), amp);
+	freqs.postln;
+	Out.ar(0, sig)
+
+}).add()
+)
+
+Synth(\test, [freqs:[120,220]])

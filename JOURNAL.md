@@ -2,6 +2,13 @@
 SuperCollider SynthDef in Native Javascript
 
 ## TODO
+03062021 Multi Channel Expansion
+- [ ] added a questionable interface for dealing with multi-channel expansion
+	- ask for advice and clean it up
+- [ ] not sure how well the multi-channel scales
+- [ ] we need multi-channel output UGens to start making things fully work
+	- eg in named controls
+
 02062021 MORE BABEL
 - [ ] make `+=` type of operations work
 - [ ] custom synatx for pow using `**` ?
