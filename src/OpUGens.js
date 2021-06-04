@@ -56,7 +56,7 @@ const Operator = {
 var BinaryOpUGen = genBasicUGenDef("BinaryOpUGen",  ["audio", "control"], {lhs: undefined, rhs: undefined})
 
 function BinOp(operator, lhs, rhs) {
-	return actionOnUGenMaybeMulti(BinOpHelper, [operator,lhs,rhs])	
+	return actionOnUGenMaybeMulti(BinOpHelper, [], [operator,lhs,rhs])	
 }
 
 function BinOpHelper(operator, lhs, rhs) {
@@ -113,7 +113,7 @@ function BinOpHelper(operator, lhs, rhs) {
 var MulAddUGen = genBasicUGenDef("MulAdd",  ["audio", "control"], {input: undefined, mul: 1.0, add: 0.0})
 
 function MulAdd(input, mul, add) {
-	return actionOnUGenMaybeMulti(MulAddHelper, [input,mul,add])	
+	return actionOnUGenMaybeMulti(MulAddHelper, [], [input,mul,add])	
 }
 
 function MulAddHelper(input, mul, add) {
@@ -145,6 +145,7 @@ function MulAddHelper(input, mul, add) {
 	}
 	return obj
 }
+
 module.exports = {
     BinOp,
 	MulAdd

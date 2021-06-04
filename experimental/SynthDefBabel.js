@@ -1,40 +1,6 @@
 let babel = require('@babel/core')
 let sc = require("../src/include-synthdef")
 
-fn0 = () => {
-	let sig = sc.SinOsc.ar(220, 0) * 0.5
-    sc.Out.ar(0, sig)
-}
-
-let yees = (a,b) => {
-	return a * b
-}
-
-let SC_add = (a, b) => {
-	"use synthdefjs"
-	return a + b 
-}
-let SC_mul = (a, b) => {
-	"use synthdefjs"
-	return a * b 
-} 
-
-// This works, but it duplicates things.
-let SC_something = (a,b) => {
-	"use synthdefjs"
-	return SC_mul(SC_add(a,b), b)
-}
-
-fn1 = () => {
-	"use synthdefjs"
-	let sig = sc.SinOsc.ar(220, 0)
-	sig = SC_mul(sig, 0.5)
-	sig = SC_mul(sig, 0.75)
-	sig = SC_something(sig,1.2)
-	yees(3,4)
-    sc.Out.ar(0, sig)
-}
-
 // TODO: += typa stuff
 const operatorOverload = {
 	BinaryExpression(path) {
@@ -172,7 +138,54 @@ function replaceUGenOps(func_graph) {
 	// Ahh, the wretched, evil line of code.
 	return eval(output.code)
 }
-fn0mod = replaceUGenOps(fn1)
-console.log(fn0mod.toString())
-let def0 = sc.SynthDef('def0', fn0mod).readableSynthDefFile()
-//console.log(def0)
+
+fn0 = () => {
+	let sig = sc.SinOsc.ar(220, 0) * 0.5
+    sc.Out.ar(0, sig)
+}
+
+let yees = (a,b) => {
+	return a * b
+}
+
+let SC_add = (a, b) => {
+	"use synthdefjs"
+	return a + b 
+}
+let SC_mul = (a, b) => {
+	"use synthdefjs"
+	return a * b 
+} 
+
+// This works, but it duplicates things.
+let SC_something = (a,b) => {
+	"use synthdefjs"
+	return SC_mul(SC_add(a,b), b)
+}
+
+nested_fn_test = () => {
+	"use synthdefjs"
+	let sig = sc.SinOsc.ar(220, 0)
+	sig = SC_mul(sig, 0.5)
+	sig = SC_mul(sig, 0.75)
+	sig = SC_something(sig,1.2)
+	yees(3,4)
+    sc.Out.ar(0, sig)
+}
+
+// Stereo FM Synth -- Nice
+fm_test = () => {
+	"use synthdefjs"
+	let mod = sc.SinOsc.ar(Array(2).fill('m_freq'.kr(1))) // stereo propgates through the entire synth
+	mod = mod * 'width'.kr(10) + 'c_freq'.kr(220)
+    let carrier = sc.SinOsc.ar(mod)
+	carrier = carrier * 'amp'.kr(0.5)
+    sc.Out.ar(0,carrier)
+}
+
+fn_op = fm_test
+console.log(`fn_op before babel:\n${fm_test.toString()}\n`)
+fnmod = replaceUGenOps(fm_test)
+console.log(`fn_op after babel:\n${fnmod.toString()}\n`)
+let def0 = sc.SynthDef('def_op', fnmod)
+def0.writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")

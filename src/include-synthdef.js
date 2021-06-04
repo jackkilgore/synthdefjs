@@ -9,5 +9,5 @@ module.exports = {
 	BinOp,
 	MulAdd,
 	Out,
-	SinOsc, 
+	SinOsc,
 } 

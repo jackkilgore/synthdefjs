@@ -8,13 +8,11 @@ var UGen = {
     specialIndex: 0,
     name: "UGen",
     addToGraph: function(rate, args) {
-
         this.synthDef = undefined
         this.synthIndex = undefined
         this.rate = rate
         this.inputs = args
         this.addToSynthDef()
-    
     },
     addToSynthDef: function() {
         this.synthDef = UGen.synthDefContext
@@ -30,15 +28,37 @@ var UGen = {
             if(!this.inputs[i].isValidUGenInput && !Number.isFinite(this.inputs[i])
                 && !isArray(this.inputs[i])) 
             {
-                throw new Error(`Generic UGen checkInputs of ${this.name} failed.`)
+            	throw new Error(`Generic UGen checkInputs of ${this.name} failed.`)
             }
         }
         return true
     }
 }
 
-// PARENT MUST DERIVE FROM THE UGEN OBJECT
-const createUGen = (ugen_type, name, rate, ...args) => {
+var MultiOutUGen = Object.create(UGen)
+MultiOutUGen.isMultiOutUGen = true
+MultiOutUGen.addToGraph = function(rate, num_outs, args) {
+	this.channels = new Array(num_outs)
+	for (let i = 0; i < num_outs; i++) {
+		if(rate === 'audio') {
+			this.channels[i] = OutputProxy.ar(this, i)	
+		} else if (rate === 'control') {
+			this.channels[i] = OutputProxy.kr(this, i)	
+		} else if (rate === 'scalar') {
+			this.channels[i] = OutputProxy.ir(this, i)	
+		} else {
+			throw new Error(`Invalid rate.`)
+		}
+	}
+	this.synthDef = undefined
+	this.synthIndex = undefined
+	this.rate = rate
+	this.inputs = args
+	this.addToSynthDef()
+}
+
+// UGEN_TYPE MUST DERIVE FROM THE UGEN OBJECT
+const createUGen = (ugen_type, name, rate,...args) => {
 	if(!ugen_type.isUGen) {
 		throw new Error(`Attempted to create a UGen out of an object that is not a UGen`)
 	}
@@ -51,30 +71,45 @@ const createUGen = (ugen_type, name, rate, ...args) => {
 	}
 	return ugen
 }
-function actionOnUGenMaybeMulti(action,args,...const_pre_args) {
+
+const createMultiOutUGen = (ugen_type, name, rate, channels, ...args) => {
+	if(!ugen_type.isMultiOutUGen) {
+		throw new Error(`Attempted to create a MultiOutUGen out of an object that is not a MultiOutUUGen`)
+	}
+	ugen = Object.create(ugen_type)
+	ugen.name = name
+	if(args === undefined) {
+		ugen.addToGraph(rate,channels,[])
+	} else {
+		ugen.addToGraph(rate,channels,args)
+	}
+	return ugen
+}
+
+function actionOnUGenMaybeMulti(action,const_pre_args, inputs) {
 	// figure out multichannel expansion
 	// Should probably be in a new function
 	// Maybe have a fn not aware of UGen, so it can figure out how many UGens to make
 	let num_ugens = 0
-	for (let i = 0; i < args.length; i++) {
-		if(isArray(args[i])) {
-			num_ugens = Math.max(args[i].length, num_ugens)	
+	for (let i = 0; i < inputs.length; i++) {
+		if(isArray(inputs[i])) {
+			num_ugens = Math.max(inputs[i].length, num_ugens)	
 		}
 	}
 
 	// No array of arguments found. return one UGen
 	if(num_ugens === 0) {
-		return action.apply(this, const_pre_args.concat(args))
+		return action.apply(this, const_pre_args.concat(inputs))
 	}
 	
 	let multi_ugens = new Array(num_ugens)
 	for( let i = 0; i < num_ugens; i++) {
-		let temp_args = new Array(args.length)
-		for (let j = 0; j < args.length; j++) {
-			if (isArray(args[j])) {
-				temp_args[j] = args[j][i % args[j].length]
+		let temp_args = new Array(inputs.length)
+		for (let j = 0; j < inputs.length; j++) {
+			if (isArray(inputs[j])) {
+				temp_args[j] = inputs[j][i % inputs[j].length]
 			} else {
-				temp_args[j] = args[j]
+				temp_args[j] = inputs[j]
 			}
 		}
 		multi_ugens[i] = action.apply(this,const_pre_args.concat(temp_args)) 	
@@ -125,7 +160,7 @@ function genBasicUGenDef(name, rates, sign_args) {
 				`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
             throw new Error(invalid_signature_message)
         }
-    	return actionOnUGenMaybeMulti(createUGen, inst_args, output,name,'audio')
+    	return actionOnUGenMaybeMulti(createUGen, [output,name,'audio'], inst_args)
         // Create object and add to the graph.
 		/*
         obj = Object.create(output)
@@ -153,7 +188,7 @@ function genBasicUGenDef(name, rates, sign_args) {
 					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
 				throw new Error(invalid_signature_message)
             }
-    		return actionOnUGenMaybeMulti(createUGen, inst_args, output,name,'control')
+    		return actionOnUGenMaybeMulti(createUGen, [output,name,'control'], inst_args)
         }
     }
 
@@ -175,7 +210,85 @@ function genBasicUGenDef(name, rates, sign_args) {
 				throw new Error(invalid_signature_message)
             }
             
-    		return actionOnUGenMaybeMulti(createUGen, inst_args, output,name,'scalar')
+    		return actionOnUGenMaybeMulti(createUGen, [output,name,'scalar'], inst_args)
+        }
+    }
+    
+    return output
+}
+
+
+function genBasicMultiOutUGenDef(name, rates, channels, sign_args) {
+    var output = Object.create(MultiOutUGen)
+
+    if(rates.indexOf("audio") !== -1) {
+        output.ar = (...inst_args) => {
+            // Insert default arguments if necessary.
+        let arg_count = 0
+        for (let key in sign_args) {
+            if(typeof inst_args[arg_count]  === 'undefined') {
+                inst_args[arg_count] = sign_args[key]
+            }
+            arg_count += 1
+        }
+
+        // Check if we have a valid signature
+        if(inst_args.length !== arg_count) {
+			let invalid_signature_message = 
+				`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+            throw new Error(invalid_signature_message)
+        }
+    	return actionOnUGenMaybeMulti(createMultiOutUGen, [output,name,'audio',channels], inst_args)
+        // Create object and add to the graph.
+		/*
+        obj = Object.create(output)
+        obj.name = name
+        obj.addToGraph("audio",inst_args)
+        return obj
+		*/
+        }
+    }
+
+    if (rates.indexOf("control") !== -1) {
+        output.kr = (...inst_args) => {
+            // Insert default arguments if necessary.
+            let arg_count = 0
+            for (let key in sign_args) {
+                if(typeof inst_args[arg_count]  === 'undefined') {
+                    inst_args[arg_count] = sign_args[key]
+                }
+                arg_count += 1
+            }
+
+            // Check if we have a valid signature
+            if(inst_args.length !== arg_count) {
+				let invalid_signature_message = 
+					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+				throw new Error(invalid_signature_message)
+            }
+    		return actionOnUGenMaybeMulti(createMultiOutUGen, [output,name,'control',channels], inst_args)
+        }
+    }
+
+    if (rates.indexOf("scalar") !== -1) {
+        output.ir = (...inst_args) => {
+            // Insert default arguments if necessary.
+            let arg_count = 0
+            for (let key in sign_args) {
+                if(typeof inst_args[arg_count]  === 'undefined') {
+                    inst_args[arg_count] = sign_args[key]
+                }
+                arg_count += 1
+            }
+
+            // Check if we have a valid signature
+            if(inst_args.length !== arg_count) {
+				let invalid_signature_message = 
+					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+				throw new Error(invalid_signature_message)
+            }
+            
+    		return actionOnUGenMaybeMulti(createMultiOutUGen, [output,name,'scalar',channels], inst_args)
         }
     }
     
@@ -187,10 +300,10 @@ var SinOsc = genBasicUGenDef("SinOsc", ["audio", "control"], {freq: 440.0, phase
 // Out is a special case since must destructure the signals array
 var Out = Object.create(UGen)
 Out.ar = (bus, signals) => {
-	return actionOnUGenMaybeMulti(createUGen, [bus].concat(signals),Out, "Out", 'audio')
+	return actionOnUGenMaybeMulti(createUGen, [Out, "Out", 'audio'], [bus].concat(signals))
 }
 Out.kr = (bus, signals) => {
-	return actionOnUGenMaybeMulti(createUGen, [bus].concat(signals),Out, "Out", 'control')
+	return actionOnUGenMaybeMulti(createUGen, [Out, "Out", 'control'], [bus].concat(signals))
 }
 // Overload checkInputs for Out
 Out.checkInputs = function() {
@@ -208,10 +321,17 @@ Out.checkInputs = function() {
     return this.checkValInputs()
 }
 
+var OutputProxy = genBasicUGenDef("OutputProxy",['audio', 'control', 'scalar'], 
+									{itsSourceUGen: undefined, index: undefined})
+
+
+
 module.exports = {
 	UGen,
     genBasicUGenDef,
+	genBasicMultiOutUGenDef,
 	actionOnUGenMaybeMulti,
     SinOsc,
     Out,
+	MultiOutUGen,
 }

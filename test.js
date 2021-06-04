@@ -59,10 +59,18 @@ let def6 = sc.SynthDef('def6', () => {
 })
 
 
+/*
 let def7 = sc.SynthDef('defmulti', () => {
-	let sig = sc.SinOsc.ar(Array(2).fill(440)) // Basic multi channel expansion. breaks in most cases
+	let sig = sc.SinOsc.ar(Array(2).fill(440)) // basic multi channel expansion. breaks in most cases
 	sc.Out.ar(0,sig)
 })
+
+let def8 = sc.SynthDef('defmix', () => {
+	let sig = sc.SinOsc.ar(Array(2).fill(220)) // basic multi channel expansion. breaks in most cases
+	//sig = sc.Mix(sig)
+	sc.Out.ar(0,sig)
+})
+*/
 
 def_out = def6
 def_out.writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")

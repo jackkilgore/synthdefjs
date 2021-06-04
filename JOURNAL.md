@@ -8,6 +8,9 @@ SuperCollider SynthDef in Native Javascript
 - [ ] not sure how well the multi-channel scales
 - [ ] we need multi-channel output UGens to start making things fully work
 	- eg in named controls
+- [ ] figure out `OutputProxy` and how to do multi-out stuff
+- [ ] fix yr scopes
+	- for UGen gen code
 
 02062021 MORE BABEL
 - [ ] make `+=` type of operations work

@@ -1,6 +1,11 @@
-const {UGen,genBasicUGenDef, actionOnUGenMaybeMulti} = require('./UGen')
+const {
+	UGen,genBasicUGenDef, 
+	genBasicMultiOutUGenDef,
+	actionOnUGenMaybeMulti
+} = require('./UGen')
 
 var Control = genBasicUGenDef("Control", ['scalar', 'control'])
+//var Control = genBasicMultiOutUGenDef("Control", ['scalar', 'control'],2) Broken: see Output Proxy!
 var AudioControl = genBasicUGenDef("AudioControl", ['audio'])
 
 // Named Controls. Forcing users to use this.
@@ -15,13 +20,13 @@ var NamedControl = {
 // It gets instantiated correctly, but doesn't work as a parameter
 // We need multi-output UGens
 const createNamedControlKr = function(values) {
-	return actionOnUGenMaybeMulti(createNamedControlKrHelper,[values])
+	return actionOnUGenMaybeMulti(createNamedControlKrHelper, [this.toString()], [values])
 }
 
-const createNamedControlKrHelper = function(values) {
+const createNamedControlKrHelper = function(name, values) {
     named_control = Object.create(NamedControl)
     named_control.synthDef = UGen.synthDefContext
-    named_control.name = this.toString()
+    named_control.name = name
     named_control.rate = 'control'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
@@ -31,9 +36,12 @@ const createNamedControlKrHelper = function(values) {
 }
 
 const createNamedControlIr = function(values) {
+	return actionOnUGenMaybeMulti(createNamedControlIrHelper, [this.toString()], [values])
+}
+const createNamedControlIrHelper = function(name, values) {
     named_control = Object.create(NamedControl)
     named_control.synthDef = UGen.synthDefContext
-    named_control.name = this.toString()
+    named_control.name = name
     named_control.rate = 'scalar'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
@@ -43,9 +51,12 @@ const createNamedControlIr = function(values) {
 }
 
 const createNamedControlAr = function(values) {
+	return actionOnUGenMaybeMulti(createNamedControlArHelper, [this.toString()], [values])
+}
+const createNamedControlArHelper = function(name, values) {
     named_control = Object.create(NamedControl)
     named_control.synthDef = UGen.synthDefContext
-    named_control.name = this.toString()
+    named_control.name = name
     named_control.rate = 'audio'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
@@ -55,10 +66,10 @@ const createNamedControlAr = function(values) {
     return control
 }
 
-const createNamedControl = (rate, values) => {
+const createNamedControlHelper = (rate, name, values) => {
     named_control = Object.create(NamedControl)
     named_control.synthDef = UGen.synthDefContext
-    named_control.name = this.toString()
+    named_control.name = name
     named_control.rate = rate
     named_control.values = values
     named_control.synthDef.addControl(named_control)
@@ -76,7 +87,7 @@ const createNamedControl = (rate, values) => {
     return control
 }
 // Would ideally use this partial application technique. But I can't get 'this' to do what I want :,(
-let createNamedControlKrTEST = createNamedControl.bind(null, 'control')
+let createNamedControlKrTEST = createNamedControlHelper.bind(null, 'control')
 
 Reflect.set(String.prototype, 'kr', createNamedControlKr)
 Reflect.set(String.prototype, 'ir', createNamedControlIr)

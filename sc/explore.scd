@@ -119,3 +119,6 @@ b = SynthDef(\test, { | amp = 0.5 |
 )
 
 Synth(\test, [freqs:[120,220]])
+
+
+Mix.ar
