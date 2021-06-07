@@ -33,7 +33,10 @@ Control.kr = (default_vals) => {
 	return actionOnUGenMaybeMulti(createMultiOutControl, [Control, "Control", 'control'], default_vals)
 }
 
-var AudioControl = genBasicUGenDef("AudioControl", ['audio'])
+var AudioControl = Object.create(MultiOutUGen)
+AudioControl.ar = (default_vals) => {
+	return actionOnUGenMaybeMulti(createMultiOutControl, [AudioControl, "AudioControl", 'audio'], default_vals)
+}
 
 // Named Controls. Forcing users to use this.
 var NamedControl = {
@@ -72,7 +75,7 @@ const createNamedControlIrHelper = function(name, values) {
     named_control.rate = 'scalar'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
-    control = Control.ir()
+    control = Control.ir(values)
     control.specialIndex = named_control.controlIndex
     return control
 }
@@ -87,7 +90,7 @@ const createNamedControlArHelper = function(name, values) {
     named_control.rate = 'audio'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
-    control = AudioControl.ar()
+    control = AudioControl.ar(values)
     // In the context of controls, specialIndex = its index in the control array.
     control.specialIndex = named_control.controlIndex
     return control
