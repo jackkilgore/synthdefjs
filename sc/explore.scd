@@ -120,5 +120,13 @@ b = SynthDef(\test, { | amp = 0.5 |
 
 Synth(\test, [freqs:[120,220]])
 
+(
+b = SynthDef(\test, {
+	var ctrl = 'freq'.kr([220,440]);
+})
+)
 
-Mix.ar
+
+Mix.new()
+
+[2,3,4].asArray.clump(4)

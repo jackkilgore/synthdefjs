@@ -9,8 +9,8 @@ let sc = require("synthdefjs")
 
 let def0 = SynthDef('def0', () => {
 	let sig = SinOsc.ar(220, 0)
-    Out.ar(0, sig)
-}).writeToFile(
+	Out.ar(0, sig)
+})
 ```
 
 If someone would like to dynamically change aspects of a `SynthDef` after it has been sent to the audio server, SynthDefJS allows users to specify paramters using a **named control** style. A **named control** style is defined as follows: `'parameter name'.rate(default_value)` where `rate = ar | kr | ir`.
@@ -20,7 +20,7 @@ An example using the **named control** style:
 // FM Synth -- Nice
 let sc = require("synthdefjs")
 
-let def1 = sc.SynthDef('def6', () => {
+let def_fm = sc.SynthDef('def_fm', () => {
 	let mod = sc.SinOsc.ar('m_freq'.kr(1))
 	mod = sc.MulAdd(mod, 'width'.kr(10), 'c_freq'.kr(220))
 	let carrier = sc.SinOsc.ar(mod)
@@ -34,7 +34,7 @@ We can also perform multi-channel expansion by passing arrays of arguments to UG
 // Stereo FM Synth -- Nicee
 let sc = require("synthdefjs")
 
-let def1 = sc.SynthDef('def6', () => {
+let def_fm2 = sc.SynthDef('def_fm2', () => {
 	let mod = sc.SinOsc.ar('m_freq'.kr(1))
 	mod = sc.MulAdd(mod, 'width'.kr(10), 'c_freq'.kr(220))
 	let carrier = sc.SinOsc.ar(Array(2).fill(mod)) // Duplicate 'mod' param propgate it through the synth.
@@ -66,7 +66,7 @@ Notice that in the FM Synth example we are forced to use `sc.MulAdd(.)` and `sc.
 // FM Synth using Operator Overloading -- Even Nicer
 let sc = require("synthdefjs")
 
-let def2 = sc.SynthDef('def2', () => {
+let def_op = sc.SynthDef('def_op', () => {
 	let mod = sc.SinOsc.ar('m_freq'.kr(1)) * 'width'.kr(10) + 'c_freq'.kr(220)
     let carrier = sc.SinOsc.ar(mod) * 'amp'.kr(0.5)
     sc.Out.ar(0, carrier)
@@ -80,7 +80,7 @@ For details see `experimental/SynthDefBabel.js`
 - ECMAScript6
 - babel/core7 (experimental)
 - babel/plugin-transform-arrow-functions (experimental)
-- acron (experimental)
+- acorn (experimental)
 
 ## Hopes and Dreams
 - [ ] Topological sorting of the audio graph

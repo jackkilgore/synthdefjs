@@ -13,6 +13,7 @@ var SynthDefTemplate = {
         this.nodes = []
         this.constants = []
         this.controls = []
+		this.num_control_vals = 0
         
         this.build(funcGraph)
         if(!this.checkNodesInputs()) {
@@ -20,7 +21,7 @@ var SynthDefTemplate = {
        }
         this.collectConstants()
 
-        console.log(`Successfully built SynthDef Graph. Number of nodes: ${this.nodes.length}.`)
+        console.log(`Successfully built SynthDef Graph: ${this.name}. Number of nodes: ${this.nodes.length}.`)
     },
 
     addNode: function(node) {
@@ -70,6 +71,7 @@ var SynthDefTemplate = {
             throw new Error("Invalid rate for Control UGen.")
         }
         control.controlIndex = this.controls.length
+		this.num_control_vals += control.values.length
         this.controls.push(control)
 
     },
@@ -128,17 +130,18 @@ var SynthDefTemplate = {
         }
 
         // Num of controls and their respective default values.
-        index = addIntToArray8(output, index, this.controls.length, 32)
+        index = addIntToArray8(output, index, this.num_control_vals, 32)
         for(let i = 0; i < this.controls.length; i++) {
-            // TODO: Only allows one value for now
             if(isArray(this.controls[i].values)) {
-                throw new Error("Writing to bytes doesn't support Controls with an array of values.")
+				for(let j = 0; j < this.controls[i].values.length; j++) {
+					index = addFloat32ToArray8(output, index, this.controls[i].values[j])
+				}
             } else {
                 index = addFloat32ToArray8(output, index, this.controls[i].values) 
             }
         }
 
-        // Num of control names and their respective names. The same as the above number at the moment.
+        // Num of control names and their respective names.
         index = addIntToArray8(output, index, this.controls.length, 32)
         // Add param-name
         for(let i = 0; i < this.controls.length; i++) {
@@ -151,7 +154,7 @@ var SynthDefTemplate = {
         // Add ugen-spec
         for(let i = 0; i < this.nodes.length; i++) {
             // UGen name
-            index = addPascalStrToArray8(output, index, this.nodes[i].name) 
+            index = addPascalStrToArray8(output, index, this.nodes[i].name)
 
             // UGen rate
             let rate_str = this.nodes[i].rate
@@ -170,8 +173,8 @@ var SynthDefTemplate = {
             // Number of inputs 
             index = addIntToArray8(output, index, this.nodes[i].inputs.length ,32) 
 
-            // TODO: Number of outputs (just 1 for now)
-            index = addIntToArray8(output, index, 1 ,32)
+            // Number of Outputs
+            index = addIntToArray8(output, index, this.nodes[i].numOutputs() ,32)
 
             // Special index: Used for BinOp stuff
             index = addIntToArray8(output, index, this.nodes[i].specialIndex ,16)
@@ -179,7 +182,6 @@ var SynthDefTemplate = {
             // Add input-spec
             for(let j = 0; j < this.nodes[i].inputs.length; j++) {
                 // Case where the input is a constant. 
-                // TODO: Generalize this for arrays.
                 if( Number.isFinite(this.nodes[i].inputs[j])) {
                     let maybe_const_index = this.constants.indexOf(this.nodes[i].inputs[j])
                     if(maybe_const_index === -1) {
@@ -190,16 +192,16 @@ var SynthDefTemplate = {
                      
                 } 
                 // Case where the input is a UGen.
-                else if (this.nodes.indexOf(this.nodes[i].inputs[j]) > -1) { 
+                else if (this.nodes[i].inputs[j].synthIndex < this.nodes.length) { 
                     index = addIntToArray8(output, index, this.nodes[i].inputs[j].synthIndex ,32)
-                    // TODO: Since we only are allowing mono outputs, we hardcode output index to be 0
-                    index = addIntToArray8(output, index, 0 ,32)
-                }
+                    index = addIntToArray8(output, index, this.nodes[i].inputs[j].outputIndex ,32)
+                } else {
+					throw new Error("Invalid input to UGen.")
+				}
             }
 
-            // TODO: Add output-spec
-            for(let j = 0; j < 1; j++) {
-                index = addIntToArray8(output, index, rate_int , 8) // Hard-coded to always be same as UGen's rate
+            for(let j = 0; j < this.nodes[i].numOutputs(); j++) {
+                index = addIntToArray8(output, index, rate_int , 8)
             }
         }
 
@@ -219,12 +221,16 @@ var SynthDefTemplate = {
         for (let i = 0; i < this.constants.length; i++) {
             SynthDefFile.ConstantValues.push(this.constants[i])
         }
-
-        SynthDefFile.numParameters = this.controls.length
+		SynthDefFile.numParameters = this.num_control_vals
         SynthDefFile.ParameterValues = []
+        SynthDefFile.numParameterNames = this.controls.length
         SynthDefFile.ParameterNames = []
         for(let i = 0; i < this.controls.length; i++) {
-            SynthDefFile.ParameterValues.push(this.controls[i].values)
+			if(isArray(this.controls[i].values)) {
+				for(let j = 0; j < this.controls[i].values.length; j++) {
+            		SynthDefFile.ParameterValues.push(this.controls[i].values[j])
+				}
+			} else SynthDefFile.ParameterValues.push(this.controls[i].values)
             SynthDefFile.ParameterNames.push({"name": this.controls[i].name, "index": i})
         }
 
@@ -234,7 +240,7 @@ var SynthDefTemplate = {
                 "name": this.nodes[i].name, 
                 "rate": this.nodes[i].rate, 
                 "num_inputs": this.nodes[i].inputs.length, 
-                "num_outputs": 1, 
+                "num_outputs": this.nodes[i].numOutputs(), 
                 "special index": this.nodes[i].specialIndex,
                 "inputs": [],
                 "outputs": []
@@ -246,13 +252,12 @@ var SynthDefTemplate = {
                         throw new Error("Constant does not exist in the synthdef's constant set.")
                     }
                     index.inputs.push([-1, maybe_const_index]) 
-                // if exits in synth nodes, place in inputs. Maybe switch to using maps for nodes. SPEEED
-                } else if (this.nodes.indexOf(this.nodes[i].inputs[j]) > -1) {
-                    index.inputs.push([this.nodes[i].inputs[j].synthIndex, 0]) // 0 is the output index, 0 if we only have mono outputs
+                // if exis in synth nodes, place in inputs. Maybe switch to using maps for nodes. SPEEED
+                } else if (this.nodes[i].inputs[j].synthIndex < this.nodes.length) {
+                    index.inputs.push([this.nodes[i].inputs[j].synthIndex, this.nodes[i].inputs[j].outputIndex]) // 0 is the output index, 0 if we only have mono outputs
                 }
             }
-
- 			for(let j = 0; j < 1; j++) {
+ 			for(let j = 0; j < this.nodes[i].numOutputs(); j++) {
             	index.outputs.push(index["rate"])// Hard-coded to always be same as UGen's rate
             }
             SynthDefFile.UGens.push(index)

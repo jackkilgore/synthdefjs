@@ -26,25 +26,14 @@ SynthDef(\def4, {
 
 a = Synth(\def4, [freq:440, amp:0.2]);
 
-(
-SynthDef(\def5, {
-	var freq = \freq.kr(220)
-	var amp = \amp.kr(0.5)
-	var sig1 = SinOsc.ar(BinOp('*', freq, 1))
-	var sig2 = SinOsc.ar(440)
-	var scale_sig = BinOp('+', sig1, sig2)
-	scale_sig = BinOp('*',scale_sig, 0.5)
-	scale_sig = BinOp('*',scale_sig, amp)
-    Out.ar(0,scale_sig)
-})
 
 a = Synth(\def5, [freq:880, amp:0.5]);
 
 a = Synth(\def6)
 
-a = Synth(\def6, [c_freq:440, m_freq:1, width:10, amp:0.5]);
+a = Synth(\def6, [c_freq:440, m_freq:1, width:10, amp:0.01]);
 
-a.set(\c_freq, 200, \m_freq, 70, \width, 80, \amp, 0.5)
+a.set(\c_freq, 200, \m_freq, 70, \width, 80, \amp, 0.01)
 a.free
 
 
@@ -52,6 +41,48 @@ a = Synth(\defmulti)
 
 
 a = Synth(\defmix);
+
+
+(
+SynthDef('defMultiOut', {
+	var sig = BinaryOpUGen('*',SinOsc.ar('freqs'.kr([92, 92])), 0.25);
+	Out.ar(0,sig);
+}).asBytes.printOn(Post); nil
+
+)
+
+a = Synth(\defMultiOut, [freqs:[220,440]])
+a.set(\freqs,[220,150])
+
+(
+SynthDef('defMultiOut', {
+	Pan2.ar('freqs'.ar([92, 92]).postln)
+
+}).asBytes.printOn(Post); nil
+
+)
+
+Int8Array[
+	// header
+	83, 67, 103, 102, 0, 0, 0, 2, 0, 1,
+	// name of UGen
+	11, 100, 101, 102, 77, 117, 108, 116, 105, 79, 117, 116,
+	// num of constants
+	0, 0, 0, 0,
+	// num params
+	0, 0, 0, 2,
+	// default values
+	66, -72, 0, 0,
+	66, -72, 0, 0,
+	// num param names
+	0, 0, 0, 1,
+	// param name
+	5, 102, 114, 101, 113, 115,
+	0, 0, 0, 0,
+
+	// ^^^
+	0, 0, 0, 1, 7, 67, 111, 110, 116, 114, 111, 108, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0 ]-> nil
+
 
 
 

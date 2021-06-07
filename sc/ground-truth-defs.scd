@@ -13,3 +13,17 @@ SynthDef(\def5, {
     Out.ar(0,sig1)
 })
 )
+
+(
+SynthDef('defMultiOut', {
+	var sig = BinaryOpUGen('*',SinOsc.ar('freqs'.kr([220,440])), 0.5);
+	Out.ar(0,sig);
+})
+)
+
+(
+SynthDef('outputProxy', {
+	'freq'.kr([220,440])
+}).writeDefFile("/Users/jkilgore/Desktop/")
+
+)s

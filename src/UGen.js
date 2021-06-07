@@ -6,7 +6,9 @@ var UGen = {
     isValidUGenInput: true, // We need to somehow define this value for all objects
 	isUGen: true,
     specialIndex: 0,
+	outputIndex: 0,
     name: "UGen",
+	numOutputs: () => {return 1},
     addToGraph: function(rate, args) {
         this.synthDef = undefined
         this.synthIndex = undefined
@@ -37,25 +39,18 @@ var UGen = {
 
 var MultiOutUGen = Object.create(UGen)
 MultiOutUGen.isMultiOutUGen = true
-MultiOutUGen.addToGraph = function(rate, num_outs, args) {
-	this.channels = new Array(num_outs)
-	for (let i = 0; i < num_outs; i++) {
-		if(rate === 'audio') {
-			this.channels[i] = OutputProxy.ar(this, i)	
-		} else if (rate === 'control') {
-			this.channels[i] = OutputProxy.kr(this, i)	
-		} else if (rate === 'scalar') {
-			this.channels[i] = OutputProxy.ir(this, i)	
+MultiOutUGen.channels = new Array()
+MultiOutUGen.initOutputs = function(rate, num_channels) {
+	for (let i = 0; i < num_channels; i++) {
+		if(rate === 'audio' || rate === 'control' || rate === 'scalar') {
+			this.channels.push(OutputProxy.init(rate, this, i))
 		} else {
 			throw new Error(`Invalid rate.`)
 		}
 	}
-	this.synthDef = undefined
-	this.synthIndex = undefined
-	this.rate = rate
-	this.inputs = args
-	this.addToSynthDef()
+	return this.channels
 }
+MultiOutUGen.numOutputs = function() {return this.channels.length}
 
 // UGEN_TYPE MUST DERIVE FROM THE UGEN OBJECT
 const createUGen = (ugen_type, name, rate,...args) => {
@@ -83,9 +78,11 @@ const createMultiOutUGen = (ugen_type, name, rate, channels, ...args) => {
 	} else {
 		ugen.addToGraph(rate,channels,args)
 	}
+	ugen.initOutputs(rate,channels)
 	return ugen
 }
 
+// this is suppose to be recursive
 function actionOnUGenMaybeMulti(action,const_pre_args, inputs) {
 	// figure out multichannel expansion
 	// Should probably be in a new function
@@ -112,7 +109,7 @@ function actionOnUGenMaybeMulti(action,const_pre_args, inputs) {
 				temp_args[j] = inputs[j]
 			}
 		}
-		multi_ugens[i] = action.apply(this,const_pre_args.concat(temp_args)) 	
+		multi_ugens[i] = actionOnUGenMaybeMulti(action,const_pre_args,temp_args)	
 	}
 	return multi_ugens
 }
@@ -145,7 +142,7 @@ function genBasicUGenDef(name, rates, sign_args) {
 
     if(rates.indexOf("audio") !== -1) {
         output.ar = (...inst_args) => {
-            // Insert default arguments if necessary.
+        // Insert default arguments if necessary.
         let arg_count = 0
         for (let key in sign_args) {
             if(typeof inst_args[arg_count]  === 'undefined') {
@@ -218,79 +215,37 @@ function genBasicUGenDef(name, rates, sign_args) {
 }
 
 
-function genBasicMultiOutUGenDef(name, rates, channels, sign_args) {
+function genMultiOutUGenDef(constructor_fn, name, possible_rates, ugen_signature) {
     var output = Object.create(MultiOutUGen)
+	const call_ugen = (rate, ...ugen_input) => {
+			// Insert default arguments if necessary.
+			let arg_count = 0
+			for (let key in ugen_signature) {
+				if(typeof ugen_input[arg_count]  === 'undefined') {
+					ugen_input[arg_count] = ugen_signature[key]
+				}
+				arg_count += 1
+			}
 
-    if(rates.indexOf("audio") !== -1) {
-        output.ar = (...inst_args) => {
-            // Insert default arguments if necessary.
-        let arg_count = 0
-        for (let key in sign_args) {
-            if(typeof inst_args[arg_count]  === 'undefined') {
-                inst_args[arg_count] = sign_args[key]
-            }
-            arg_count += 1
-        }
-
-        // Check if we have a valid signature
-        if(inst_args.length !== arg_count) {
-			let invalid_signature_message = 
-				`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
-            throw new Error(invalid_signature_message)
-        }
-    	return actionOnUGenMaybeMulti(createMultiOutUGen, [output,name,'audio',channels], inst_args)
-        // Create object and add to the graph.
-		/*
-        obj = Object.create(output)
-        obj.name = name
-        obj.addToGraph("audio",inst_args)
-        return obj
-		*/
-        }
-    }
-
-    if (rates.indexOf("control") !== -1) {
-        output.kr = (...inst_args) => {
-            // Insert default arguments if necessary.
-            let arg_count = 0
-            for (let key in sign_args) {
-                if(typeof inst_args[arg_count]  === 'undefined') {
-                    inst_args[arg_count] = sign_args[key]
-                }
-                arg_count += 1
-            }
-
-            // Check if we have a valid signature
-            if(inst_args.length !== arg_count) {
+			// Check if we have a valid signature
+			if(ugen_input.length !== arg_count) {
 				let invalid_signature_message = 
-					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
+					`UGen has signature (${Object.keys(ugen_signature)}), but passed ${ugen_input.length} arguments.` 
 				throw new Error(invalid_signature_message)
-            }
-    		return actionOnUGenMaybeMulti(createMultiOutUGen, [output,name,'control',channels], inst_args)
-        }
+			}
+			return actionOnUGenMaybeMulti(constructor_fn, [output,name,rate, ugen_input], [])
     }
 
-    if (rates.indexOf("scalar") !== -1) {
-        output.ir = (...inst_args) => {
-            // Insert default arguments if necessary.
-            let arg_count = 0
-            for (let key in sign_args) {
-                if(typeof inst_args[arg_count]  === 'undefined') {
-                    inst_args[arg_count] = sign_args[key]
-                }
-                arg_count += 1
-            }
-
-            // Check if we have a valid signature
-            if(inst_args.length !== arg_count) {
-				let invalid_signature_message = 
-					`UGen has signature (${Object.keys(sign_args)}), but passed ${inst_args.length} arguments.` 
-				throw new Error(invalid_signature_message)
-            }
-            
-    		return actionOnUGenMaybeMulti(createMultiOutUGen, [output,name,'scalar',channels], inst_args)
-        }
-    }
+	for ( let i = 0; i < possible_rates.length; i++) {
+		let rate = possible_rates[i]
+		if(rate === 'scalar') {
+			output.ir = (...inst_args) => {return call_ugen.apply(this,['scalar'].concat(inst_args))}
+		} else if (rate === 'control') {
+			output.kr = (...inst_args) => {return call_ugen.apply(this,['control'].concat(inst_args))}
+		} else if (rate === 'audio') {
+			output.ar = (...inst_args) => {return call_ugen.apply(this, ['audio'].concat(inst_args))}
+		}
+	}
     
     return output
 }
@@ -321,15 +276,26 @@ Out.checkInputs = function() {
     return this.checkValInputs()
 }
 
-var OutputProxy = genBasicUGenDef("OutputProxy",['audio', 'control', 'scalar'], 
-									{itsSourceUGen: undefined, index: undefined})
-
-
+var OutputProxy = Object.create(UGen)
+OutputProxy.name = "OutputProxy"
+OutputProxy.init = function (rate, sourceUGen, index) {
+	var ugen = Object.create(OutputProxy)
+	ugen.name = "OutputProxy"
+	if(rate === 'audio' || rate === 'control' || rate === 'scalar') {
+		ugen.rate = rate
+	} else {
+		throw new Error("Invalid rate.")
+	}
+ 	ugen.synthDef = sourceUGen.synthDef
+    ugen.synthIndex = sourceUGen.synthIndex
+	ugen.outputIndex = index
+	return ugen
+}
 
 module.exports = {
 	UGen,
     genBasicUGenDef,
-	genBasicMultiOutUGenDef,
+	genMultiOutUGenDef,
 	actionOnUGenMaybeMulti,
     SinOsc,
     Out,

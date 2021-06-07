@@ -183,9 +183,9 @@ fm_test = () => {
     sc.Out.ar(0,carrier)
 }
 
-fn_op = fm_test
-console.log(`fn_op before babel:\n${fm_test.toString()}\n`)
-fnmod = replaceUGenOps(fm_test)
+fn_op = nested_fn_test
+console.log(`fn_op before babel:\n${fn_op.toString()}\n`)
+fnmod = replaceUGenOps(fn_op)
 console.log(`fn_op after babel:\n${fnmod.toString()}\n`)
 let def0 = sc.SynthDef('def_op', fnmod)
 def0.writeDefFile("/Users/jkilgore/Desktop/doi.scsyndef")

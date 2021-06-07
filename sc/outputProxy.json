@@ -1,0 +1,30 @@
+[
+    {
+        "name": "outputProxy",
+        "consts": [],
+        "paramValues": [
+            220,
+            440
+        ],
+        "paramIndices": [
+            {
+                "name": "freq",
+                "index": 0,
+                "length": 2
+            }
+        ],
+        "units": [
+            [
+                "Control",
+                1,
+                0,
+                [],
+                [
+                    1,
+                    1
+                ]
+            ]
+        ],
+        "variants": []
+    }
+]

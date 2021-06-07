@@ -1,11 +1,38 @@
 const {
-	UGen,genBasicUGenDef, 
-	genBasicMultiOutUGenDef,
+	UGen,
+	MultiOutUGen,
+	genBasicUGenDef, 
+	genMultiOutUGenDef,
 	actionOnUGenMaybeMulti
 } = require('./UGen')
 
-var Control = genBasicUGenDef("Control", ['scalar', 'control'])
-//var Control = genBasicMultiOutUGenDef("Control", ['scalar', 'control'],2) Broken: see Output Proxy!
+const createMultiOutControl = (ugen_type, name, rate, ...args) => {
+	if(!ugen_type.isMultiOutUGen) {
+		throw new Error(`Attempted to create a MultiOutUGen out of an object that is not a MultiOutUUGen`)
+	}
+	ugen = Object.create(ugen_type)
+	ugen.name = name
+	if(args === undefined) {
+		ugen.addToGraph(rate,[])
+	} else {
+		ugen.addToGraph(rate,[])
+	}
+	var channels = ugen.initOutputs(rate,args.length)
+	return channels
+}
+
+
+//var Control = genBasicUGenDef("Control", ['scalar', 'control'])
+// var Control = genMultiOutUGenDef(createMultiOutControl, "Control", ['scalar', 'control'],{vals:undefined}) //Broken: see Output Proxy!
+
+var Control = Object.create(MultiOutUGen)
+Control.ir = (default_vals) => {
+	return actionOnUGenMaybeMulti(createMultiOutControl, [Control, "Control", 'scalar'], default_vals)
+}
+Control.kr = (default_vals) => {
+	return actionOnUGenMaybeMulti(createMultiOutControl, [Control, "Control", 'control'], default_vals)
+}
+
 var AudioControl = genBasicUGenDef("AudioControl", ['audio'])
 
 // Named Controls. Forcing users to use this.
@@ -20,7 +47,7 @@ var NamedControl = {
 // It gets instantiated correctly, but doesn't work as a parameter
 // We need multi-output UGens
 const createNamedControlKr = function(values) {
-	return actionOnUGenMaybeMulti(createNamedControlKrHelper, [this.toString()], [values])
+	return createNamedControlKrHelper(this.toString(),values)
 }
 
 const createNamedControlKrHelper = function(name, values) {
@@ -30,7 +57,7 @@ const createNamedControlKrHelper = function(name, values) {
     named_control.rate = 'control'
     named_control.values = values
     named_control.synthDef.addControl(named_control)
-    control = Control.kr()
+    control = Control.kr(values)
     control.specialIndex = named_control.controlIndex
     return control
 }
