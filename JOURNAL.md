@@ -1,15 +1,25 @@
 # synthdefjs
 SuperCollider SynthDef in Native Javascript
 
-## TODO
+07062021 Multi Output (ITS A MESS)
+I finally finished a working version of a multi-output ugen. The first working version is hard coded to the `Control` UGen. The whole process of getting this to work ravaged the whole UGen generation codebase. The next work to be done is to rethink the foundations of UGen generation and perhaps the foundations of UGens in general. We need a better way to create "insertion" points where specific UGens can insert arbitrary "setup" code without runing the whole generation infrastructure used for the UGens that need less "bootstrap".
+- [ ] rethink foundations of Ugen
+	- one example, setting the `name` variable
+	- creating a `init` function or a `construction` function insted of conflating that work with `addToGraph(.)`
+- [ ] reconsider if functions used for generating UGens is worth it.
+	- ie, is it possible to make it specific enough to be useful while also making it general enough to be able to deal with all the edge case UGens (like multiout and such). And if we do make it general, how do we make the interface safe and not too verbose?
+	- Example of weird edge case. I pass some default values as input to a `Control.kr(.)` in order to determine the correct number of outputs; however, the input-spec of a `Control` has no inputs. We end up having to throw away those inputted default values,once we have determined the correct number of outputs.
+- [ ] How do we deal with UGens that take arrays as inputs (not multichannel expansion)?
+	- For `Out` and `Control` we always seem to flatten these arrays, is this the case for all UGens that have array inputs?
+
 03062021 Multi Channel Expansion
 - [ ] added a questionable interface for dealing with multi-channel expansion
 	- ask for advice and clean it up
 - [ ] not sure how well the multi-channel scales
-- [ ] we need multi-channel output UGens to start making things fully work
+- [x] we need multi-channel output UGens to start making things fully work
 	- eg in named controls
-- [ ] figure out `OutputProxy` and how to do multi-out stuff
-- [ ] fix yr scopes
+- [x] figure out `OutputProxy` and how to do multi-out stuff
+- [x] fix yr scopes
 	- for UGen gen code
 
 02062021 MORE BABEL
